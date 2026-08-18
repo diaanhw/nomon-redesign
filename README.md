@@ -22,13 +22,13 @@
 
 ## 怎么看
 
-把仓库 clone 下来，直接双击 `demo/index.html` 用浏览器打开就行——纯静态单文件，没有任何依赖，不用装东西、不用起服务器。
+不用装任何东西。解压后**直接双击 `demo/index.html`**，用 Chrome 或 Safari 打开就行——纯静态单文件，没有依赖，也不用起服务器。
 
-```bash
-git clone https://github.com/diaanhw/nomon-redesign.git
-cd nomon-redesign
-open demo/index.html      # macOS
-```
+建议顺序：
+
+1. `demo/index.html` — 先玩一遍完整 App 原型（点身体地图上的肩膀开始）
+2. `demo/annotated.html` — 再看讲解版，每屏旁边写了「这一屏在解决什么问题」
+3. `docs/design-proposal.html` — 最后看完整方案和优先级
 
 ## 核心诊断
 
