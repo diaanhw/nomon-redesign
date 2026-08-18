@@ -14,6 +14,11 @@
 | [`docs/design-proposal.html`](docs/design-proposal.html) | 完整设计方案（网页版，含线框对比图） |
 | [`docs/design-proposal.md`](docs/design-proposal.md) | 同一份方案的 Markdown 原稿 |
 
+## 在线版（不用 clone，手机上直接点）
+
+- 可点击原型 — https://claude.ai/code/artifact/e9e10945-ccb3-416b-94d4-321ac86f2e19
+- 设计方案网页版 — https://claude.ai/code/artifact/adee5f78-548a-4bea-b7f3-6b7118e5b360
+
 ## 怎么看
 
 把仓库 clone 下来，直接双击 `demo/index.html` 用浏览器打开就行——纯静态单文件，没有任何依赖，不用装东西、不用起服务器。
