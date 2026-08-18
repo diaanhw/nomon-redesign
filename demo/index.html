@@ -126,6 +126,8 @@ h3.sec span{font-family:var(--mono); font-size:10.5px; font-weight:400; letter-s
 .opt .sm{display:block; font-size:12px; color:var(--ink-3); margin-top:3px; line-height:1.45;}
 .opt[aria-pressed="true"]{border-color:var(--green); background:color-mix(in srgb, var(--green) 7%, var(--surface));}
 .opt.flag[aria-pressed="true"]{border-color:var(--acute); background:color-mix(in srgb, var(--acute) 8%, var(--surface));}
+.opt.none{margin-top:7px; border-style:dashed;}
+.opt.none[aria-pressed="true"]{border-style:solid;}
 
 /* movement test */
 .test{background:var(--surface); border:1px solid var(--rule); border-radius:16px; padding:15px 16px; margin-bottom:11px;}
@@ -437,16 +439,17 @@ input[type=range]{width:100%; margin:0 0 14px; accent-color:var(--green); height
     <div class="backbar"><button class="backBtn" data-go="q4">‹</button><span class="stepLabel">评估 5 / 5 · 安全确认</span></div>
     <div class="prog"><i style="width:100%"></i></div>
     <h2 class="scrH">最后确认几件事</h2>
-    <p class="scrP">有任意一条，我就不给自我处理建议了——这几种情况需要当面看。</p>
+    <p class="scrP">这几条是需要当面看的信号。<b>绝大多数训练后的酸痛一条都不会沾</b>——没有就直接选最后一项。</p>
     <div class="opts" id="g-flags">
       <button class="opt flag" data-v="麻木">手臂或手指发麻</button>
       <button class="opt flag" data-v="无力">明显使不上劲，端不起杯子</button>
       <button class="opt flag" data-v="变形">肩膀外观变形、鼓包或凹陷</button>
       <button class="opt flag" data-v="夜痛">夜里会被痛醒</button>
       <button class="opt flag" data-v="发烧">发烧，或局部又红又烫</button>
+      <button class="opt none" data-v="none">以上情况都没有<span class="sm">最常见的情况 · 选这个直接看结果</span></button>
     </div>
     <div class="grow"></div>
-    <div class="foot"><button class="btn" id="toResult">以上都没有，看结果</button></div>
+    <div class="foot"><button class="btn" id="toResult" disabled>看结果</button></div>
   </section>
 
   <!-- ========== 转诊 ========== -->
@@ -474,7 +477,7 @@ input[type=range]{width:100%; margin:0 0 14px; accent-color:var(--green); height
     <div class="backbar"><button class="backBtn" data-go="q5">‹</button><span class="stepLabel" id="resStep">评估结果 · 右肩</span></div>
 
     <div class="verdict">
-      <span class="tier">可以先自我管理</span>
+      <span class="tier" id="vTier">可以先自我管理</span>
       <h3 id="vLead"></h3>
       <p id="vWhy"></p>
       <button class="whyBtn" id="whyBtn">为什么这么判断？</button>
@@ -737,11 +740,19 @@ $$('[data-quick]').forEach(function(b){
 });
 $('#g-flags').addEventListener('click',function(e){
   var b=e.target.closest('.opt'); if(!b) return;
-  b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true'?'false':'true');
-  S.flags=$$('#g-flags .opt[aria-pressed="true"]').map(function(x){return x.dataset.v});
+  var none=$('#g-flags .opt.none'), was=b.getAttribute('aria-pressed')==='true';
+  if(b===none){
+    $$('#g-flags .opt').forEach(function(x){x.setAttribute('aria-pressed','false')});
+    none.setAttribute('aria-pressed', was?'false':'true');
+  }else{
+    none.setAttribute('aria-pressed','false');
+    b.setAttribute('aria-pressed', was?'false':'true');
+  }
+  S.flags=$$('#g-flags .opt.flag[aria-pressed="true"]').map(function(x){return x.dataset.v});
+  S.noneOK=none.getAttribute('aria-pressed')==='true';
   var t=$('#toResult');
-  if(S.flags.length){t.textContent='看结果'; t.classList.add('danger');}
-  else {t.textContent='以上都没有，看结果'; t.classList.remove('danger');}
+  t.disabled=!(S.flags.length||S.noneOK);
+  t.classList.toggle('danger', S.flags.length>0);
 });
 ['p1','p2'].forEach(function(id){
   $('#'+id).addEventListener('input',function(){S[id]=+this.value; $('#'+id+'v').textContent=this.value;});
@@ -798,20 +809,27 @@ function calc(p1,p2,r1,r2,imp,prevBase){
   return {score:score,fP:fP,fR:fR,fI:fI,fT:fT,base:base,pain:pain};
 }
 function verdict(c){
-  if(S.r1!==2) return {l:'活动度受限比较明显，建议尽早做一次线下评估。',
+  if(S.r1!==2) return {tier:'建议线下评估', l:'活动度受限比较明显，建议尽早做一次线下评估。',
     w:'依据：你现在没法把手臂主动举过头顶。',
     d:'这既可能是疼痛导致的保护性受限，也可能是结构性问题。这两者靠自述分不开——需要有人上手查，做几个特定的抗阻测试才能区分。这不是坏消息，只是我到能力边界了。'};
-  if(S.onset==='更久') return {l:'更像长期负荷累积造成的肩部激惹，不是一次急性损伤。',
+  if(S.onset==='更久') return {tier:'重点是调整负荷', l:'更像长期负荷累积造成的肩部激惹，不是一次急性损伤。',
     w:'依据：你能主动把手举过头，但症状反复了很久。',
     d:'能举过头说明主要结构是完整的。反复很久的问题通常和日常姿势、训练安排的累积负荷有关——这类情况靠单纯休息不解决，一停就好、一练又犯，真正要改的是负荷怎么加。'};
-  if(c.pain>=7) return {l:'疼痛程度偏高，先按急性期处理，48 小时后重新评估。',
+  if(c.pain>=7) return {tier:'先按急性期处理', l:'疼痛程度偏高，先按急性期处理，48 小时后重新评估。',
     w:'依据：能举过头，但疼痛评分已经影响动作质量。',
     d:'没有提示严重结构损伤的信号，所以不用紧张。但这个疼痛水平下动作模式一定是代偿的，硬练弊大于利——先把刺激降下来，等分数回到 5 以下再谈训练。'};
-  return {l:'最可能是肩袖肌腱受到激惹，而不是撕裂。',
+  if(c.pain<=2.5 && S.r1===2 && S.r2===2 && S.impact.length===0) return {tier:'正常范围',
+    l:'这更像训练后的正常反应，不是损伤。',
+    w:'依据：活动度完整、疼痛轻微、日常动作不受影响。',
+    d:'延迟性肌肉酸痛（DOMS）在运动后 24–72 小时最明显，特征正是这三条：能正常活动、疼痛在可忍受范围、不影响穿衣提物。它不是伤，是肌肉对新负荷的正常适应，通常 3–5 天自行消退。真正要警惕的是「疼痛集中在一个固定点、活动度明显受限、或者休息后反而更痛」——你一条都不符合。',
+    tl:'这类酸痛<b>通常 3–5 天自行消退</b>，不需要特别处理。3 天后我提醒你确认一下，没好转再往下查。'};
+  return {tier:'可以先自我管理', l:'最可能是肩袖肌腱受到激惹，而不是撕裂。',
     w:'依据：能主动举过头，且没有夜间痛醒、没有明显无力。',
     d:'区分「激惹」和「撕裂」最关键的三条线索就是主动活动度、夜间痛、肌力。你三条都是好的一侧：能自己把手举上去说明肌腱的传力还在，没有夜间痛说明炎症反应不剧烈。这类问题绝大多数在 1–3 周内自己好转，前提是别继续刺激它。'};
 }
 function todos(c){
+  if(c.pain<=2.5 && S.r1===2 && S.r2===2 && S.impact.length===0)
+    return ['照常活动。轻度有氧和拉伸反而帮助酸痛消退','这几天先别在同一部位加大重量','72 小时后还没减轻，或出现某个固定点的锐痛，回来重测'];
   if(c.pain>=7) return ['贴墙做钟摆晃动，30 秒 ×3 次，只在不痛范围里动','避开一切过顶动作：推举、引体、扣球','48 小时后重测这两个动作，看疼痛分降没降'];
   if(S.onset==='更久') return ['贴墙爬手 ×10，加肩胛后缩 ×15。慢比多重要','先别练过顶推举，训练量这周不再加','留意是不是久坐或固定姿势后更痛——这是找根因的线索'];
   return ['贴墙爬手 ×10，一天两组，到有点紧但不痛的位置停住','这周避开过顶推举和卧推大重量','留意抬手过程中有没有「卡一下」的感觉'];
@@ -829,7 +847,7 @@ function renderResult(first){
   var c=calc(S.p1,S.p2,S.r1,S.r2,S.impact,prev), v=verdict(c), t=todos(c);
   if(first){ S.history=[c.score]; } 
   last=c;
-  $('#vLead').textContent=v.l; $('#vWhy').textContent=v.w; $('#whyBox').textContent=v.d;
+  $('#vTier').textContent=v.tier; $('#vLead').textContent=v.l; $('#vWhy').textContent=v.w; $('#whyBox').textContent=v.d;
   countUp($('#scoreNum'),c.score);
   var arc=$('#ringArc'); arc.style.strokeDashoffset=251.3;
   setTimeout(function(){arc.style.strokeDashoffset=251.3*(1-c.score/100)},80);
@@ -838,7 +856,7 @@ function renderResult(first){
   if(c.fT==null){
     $('#row4').classList.add('muted'); $('#f4').style.width='0%'; $('#v4').textContent='待复测';
     $('#scoreDt').textContent='首次评估没有趋势数据，这一项暂不计入，其余三项按权重归一。';
-    $('#tl').innerHTML='这类问题<b>通常 1–3 周缓解</b>。7 天后我提醒你重做这两个动作。如果那时没有改善，说明我的假设需要修正，我们换个方向。';
+    $('#tl').innerHTML=v.tl||'这类问题<b>通常 1–3 周缓解</b>。7 天后我提醒你重做这两个动作。如果那时没有改善，说明我的假设需要修正，我们换个方向。';
   }else{
     $('#row4').classList.remove('muted'); bar('#f4','#v4',c.fT);
     $('#scoreDt').textContent = c.score>=S.history[0]
