@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<title>Nomon 恢复设计</title>
+<style>
+:root{
+  --ground:#F5F7F6; --surface:#FFFFFF; --surface-2:#EDF1EF;
+  --ink:#161F1D; --ink-2:#48544F; --ink-3:#7C8985;
+  --rule:#DBE2DF; --rule-strong:#C3CEC9;
+  --accent:#0F6E62; --accent-soft:#DCEBE7;
+  --ok:#3F8F5B; --warn:#B5822B; --acute:#AC4839;
+  --shadow:0 1px 2px rgba(22,31,29,.06), 0 8px 24px rgba(22,31,29,.05);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#111614; --surface:#19201E; --surface-2:#222A27;
+    --ink:#E7ECEA; --ink-2:#A5B2AD; --ink-3:#77837F;
+    --rule:#2B3532; --rule-strong:#3B4642;
+    --accent:#54B7A6; --accent-soft:#1D3330;
+    --ok:#5FB37B; --warn:#D2A045; --acute:#D2705E;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#111614; --surface:#19201E; --surface-2:#222A27;
+  --ink:#E7ECEA; --ink-2:#A5B2AD; --ink-3:#77837F;
+  --rule:#2B3532; --rule-strong:#3B4642;
+  --accent:#54B7A6; --accent-soft:#1D3330;
+  --ok:#5FB37B; --warn:#D2A045; --acute:#D2705E;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.3);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  font-size:17px; line-height:1.75; -webkit-font-smoothing:antialiased;
+}
+.serif{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Songti SC","Source Han Serif SC",Georgia,serif;}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;}
+
+.wrap{max-width:820px; margin:0 auto; padding:0 24px 96px;}
+
+/* ---------- header ---------- */
+header{padding:72px 0 40px; border-bottom:1px solid var(--rule);}
+.eyebrow{font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:11.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); margin:0 0 20px;}
+h1{
+  font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Songti SC","Source Han Serif SC",Georgia,serif;
+  font-size:clamp(34px,6vw,52px); line-height:1.15; font-weight:600; margin:0 0 20px; text-wrap:balance; letter-spacing:-.01em;
+}
+.standfirst{font-size:19px; line-height:1.7; color:var(--ink-2); margin:0; max-width:60ch;}
+.meta{margin-top:28px; display:flex; flex-wrap:wrap; gap:8px 20px; font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:12px; color:var(--ink-3);}
+
+/* ---------- sections ---------- */
+section{padding-top:56px;}
+h2{
+  font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Songti SC","Source Han Serif SC",Georgia,serif;
+  font-size:27px; font-weight:600; line-height:1.3; margin:0 0 6px; letter-spacing:-.005em;
+}
+.sub{color:var(--ink-3); font-size:14.5px; margin:0 0 28px;}
+h3{font-size:16.5px; font-weight:650; margin:32px 0 10px; letter-spacing:.005em;}
+p{margin:0 0 16px; max-width:66ch;}
+ul{margin:0 0 16px; padding-left:20px; max-width:66ch;}
+li{margin-bottom:8px;}
+strong{font-weight:650;}
+a{color:var(--accent);}
+
+/* ---------- thesis ---------- */
+.thesis{
+  margin:44px 0 0; padding:32px 34px; background:var(--surface); border:1px solid var(--rule);
+  border-left:3px solid var(--accent); border-radius:2px; box-shadow:var(--shadow);
+}
+.thesis p{
+  font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Songti SC","Source Han Serif SC",Georgia,serif;
+  font-size:22px; line-height:1.55; margin:0; color:var(--ink); text-wrap:balance;
+}
+.thesis .from{display:block; font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:12px; letter-spacing:.08em; color:var(--ink-3); margin-top:16px; text-transform:uppercase;}
+
+/* ---------- findings ---------- */
+.findings{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:2px; overflow:hidden;}
+.finding{background:var(--surface); padding:24px 26px;}
+.tag{
+  display:inline-block; font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:11px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--accent); background:var(--accent-soft); padding:3px 9px; border-radius:2px; margin-bottom:12px;
+}
+.finding h4{margin:0 0 8px; font-size:17px; font-weight:650; line-height:1.4;}
+.finding p{margin:0; font-size:15.5px; color:var(--ink-2);}
+.finding p + p{margin-top:10px;}
+
+/* ---------- table ---------- */
+.tablewrap{overflow-x:auto; border:1px solid var(--rule); border-radius:2px; background:var(--surface);}
+table{border-collapse:collapse; width:100%; min-width:560px; font-size:15px;}
+th,td{text-align:left; padding:13px 18px; border-bottom:1px solid var(--rule); vertical-align:top;}
+thead th{
+  font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:500; background:var(--surface-2); border-bottom:1px solid var(--rule-strong);
+}
+tbody tr:last-child td{border-bottom:none;}
+td.arrow{color:var(--accent); text-align:center; width:36px; padding-left:0; padding-right:0;}
+.num{font-variant-numeric:tabular-nums;}
+
+/* ---------- phone mocks ---------- */
+.mocks{display:grid; grid-template-columns:1fr 1fr; gap:24px; margin:28px 0 8px;}
+@media (max-width:620px){ .mocks{grid-template-columns:1fr;} }
+.mockcol > .caption{
+  font-family:ui-monospace,"SF Mono",Menlo,monospace; font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--ink-3); margin:0 0 10px;
+}
+.mockcol.after > .caption{color:var(--accent);}
+.phone{
+  background:var(--surface); border:1px solid var(--rule-strong); border-radius:14px; padding:14px 12px;
+  min-height:400px; display:flex; flex-direction:column; gap:9px; box-shadow:var(--shadow);
+}
+.phone .statusbar{display:flex; justify-content:space-between; font-family:ui-monospace,Menlo,monospace; font-size:9px; color:var(--ink-3); letter-spacing:.05em; margin-bottom:2px;}
+.blk{background:var(--surface-2); border-radius:4px;}
+.blk.line{height:9px;}
+.blk.w70{width:70%} .blk.w45{width:45%} .blk.w90{width:90%}
+.mockhead{font-family:"Iowan Old Style",Palatino,"Songti SC",Georgia,serif; font-size:16px; line-height:1.3; color:var(--ink-2); padding:6px 2px;}
+.empty{
+  flex:1; border:1px dashed var(--rule-strong); border-radius:6px; display:flex; align-items:center; justify-content:center;
+  color:var(--ink-3); font-size:11.5px; font-family:ui-monospace,Menlo,monospace; text-align:center; padding:12px; min-height:130px;
+}
+.card{background:var(--surface-2); border-radius:6px; padding:10px 11px;}
+.card .k{font-family:ui-monospace,Menlo,monospace; font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3); display:block; margin-bottom:5px;}
+.card .v{font-size:13px; line-height:1.5; color:var(--ink);}
+.card.accent{background:var(--accent-soft);}
+.card.accent .v{color:var(--ink);}
+.btn{background:var(--accent); color:#fff; border-radius:5px; text-align:center; padding:9px; font-size:12.5px; font-weight:600;}
+.btn.ghost{background:transparent; border:1px solid var(--rule-strong); color:var(--ink-2); font-weight:500;}
+.tabbar{display:flex; justify-content:space-between; border-top:1px solid var(--rule); padding-top:8px; margin-top:auto;}
+.tabbar span{font-size:9.5px; color:var(--ink-3); font-family:ui-monospace,Menlo,monospace;}
+.tabbar span.on{color:var(--accent); font-weight:600;}
+.bodymap{display:flex; justify-content:center; padding:4px 0 2px;}
+.scorerow{display:flex; align-items:baseline; gap:8px;}
+.scorenum{font-family:ui-monospace,Menlo,monospace; font-size:30px; font-weight:600; color:var(--accent); line-height:1; font-variant-numeric:tabular-nums;}
+.scoredelta{font-family:ui-monospace,Menlo,monospace; font-size:11px; color:var(--ok);}
+
+/* ---------- steps ---------- */
+.steps{display:grid; gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:2px; overflow:hidden; margin-bottom:20px;}
+.step{background:var(--surface); padding:18px 22px; display:grid; grid-template-columns:34px 1fr; gap:16px; align-items:start;}
+.step .n{font-family:ui-monospace,Menlo,monospace; font-size:13px; color:var(--accent); font-weight:600; padding-top:2px; font-variant-numeric:tabular-nums;}
+.step .body h4{margin:0 0 5px; font-size:16px; font-weight:650;}
+.step .body p{margin:0; font-size:15px; color:var(--ink-2);}
+.step.flag{background:color-mix(in srgb, var(--acute) 6%, var(--surface));}
+.step.flag .n{color:var(--acute);}
+
+/* ---------- contributors bars ---------- */
+.bars{display:grid; gap:12px; margin:20px 0 8px; background:var(--surface); border:1px solid var(--rule); border-radius:2px; padding:22px 24px;}
+.bar{display:grid; grid-template-columns:130px 1fr 46px; gap:14px; align-items:center; font-size:14.5px;}
+.bar .track{display:block; height:7px; background:var(--surface-2); border-radius:4px; overflow:hidden;}
+.bar .fill{display:block; height:100%; background:var(--accent); border-radius:4px;}
+.bar .wt{font-family:ui-monospace,Menlo,monospace; font-size:12.5px; color:var(--ink-3); text-align:right; font-variant-numeric:tabular-nums;}
+@media (max-width:520px){ .bar{grid-template-columns:96px 1fr 42px; font-size:13.5px;} }
+
+/* ---------- callout ---------- */
+.callout{
+  background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--acute);
+  border-radius:2px; padding:26px 28px; box-shadow:var(--shadow);
+}
+.callout h3{margin:0 0 12px; color:var(--acute); font-size:16px;}
+.callout ul{margin-bottom:0;}
+.callout li{font-size:15.5px; color:var(--ink-2);}
+
+/* ---------- priority ---------- */
+.prio{display:grid; gap:14px;}
+.plane{background:var(--surface); border:1px solid var(--rule); border-radius:2px; padding:20px 24px; display:grid; grid-template-columns:52px 1fr; gap:18px; box-shadow:var(--shadow);}
+.plane .lvl{font-family:ui-monospace,Menlo,monospace; font-size:14px; font-weight:700; letter-spacing:.02em;}
+.plane.p0 .lvl{color:var(--acute);} .plane.p1 .lvl{color:var(--warn);} .plane.p2 .lvl{color:var(--ink-3);}
+.plane h4{margin:0 0 6px; font-size:16px; font-weight:650;}
+.plane p{margin:0; font-size:15px; color:var(--ink-2);}
+
+/* ---------- cards list ---------- */
+.kcards{display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:2px; overflow:hidden;}
+.kcard{background:var(--surface); padding:14px 18px; font-size:14.5px; line-height:1.5; color:var(--ink-2); display:grid; grid-template-columns:22px 1fr; gap:6px;}
+.kcard .i{font-family:ui-monospace,Menlo,monospace; font-size:11.5px; color:var(--ink-3); padding-top:3px; font-variant-numeric:tabular-nums;}
+
+footer{margin-top:72px; padding-top:24px; border-top:1px solid var(--rule); font-family:ui-monospace,Menlo,monospace; font-size:12px; color:var(--ink-3); line-height:1.9;}
+</style>
+
+<div class="wrap">
+
+<header>
+  <p class="eyebrow">Nomon 测试版 · 体验诊断与重构建议</p>
+  <h1>让用户先看见自己的身体，<br>他自然就愿意开口</h1>
+  <p class="standfirst">Nomon 现在的第一屏是一个空白的输入框。这份方案参照 Oura 的产品结构，把它改成「先给予、后索取」——用户不用打字就能拿到第一个有用的结论，然后才愿意持续记录。</p>
+  <div class="meta">
+    <span>2026-08-18</span>
+    <span>依据：测试版 Today / Myself / Insights 四页面实测</span>
+    <span>参照：Oura App</span>
+  </div>
+</header>
+
+<section>
+  <div class="thesis">
+    <p>Oura 的成功不在于指环测得多准，而在于它把一个用户完全不懂的领域，变成了几个看得懂、点得开、每天想看一眼的数字。Nomon 要做的是同一件事：把「我这里有点痛」这个模糊的感觉，变成一个可测量、可追踪、有解释的数字。</p>
+    <span class="from">方案的全部出发点</span>
+  </div>
+</section>
+
+<section>
+  <h2>一 · 四个诊断</h2>
+  <p class="sub">都不是文案问题，是顺序问题。</p>
+
+  <div class="findings">
+    <div class="finding">
+      <span class="tag">顺序</span>
+      <h4>给予和索取的顺序反了</h4>
+      <p>Oura 是先给后要：戴上指环睡一觉，第二天早上就有三个分数和一整套解释，用户是被「我想搞懂这个数字」推着去读知识、打标签。</p>
+      <p>Nomon 是先要后给：进门就是一个空文本框「写下来」，Insights 页还明说 “A pattern shows after a few entries”——把回报推到了一个未知的将来。用户不是不愿意输入，是不愿意为一个还没证明自己有用的东西输入。</p>
+    </div>
+    <div class="finding">
+      <span class="tag">输入</span>
+      <h4>把最难的输入方式设成了默认</h4>
+      <p>「肩膀举高时有点痛」这种自由文本，对用户是一道开放式作文题：不知道该写多细、不知道写了会怎么用、怕写错。</p>
+      <p>Oura 的主输入是零成本的传感器，辅助输入是轻量点选。Nomon 没有传感器，但完全可以用<strong>结构化自评</strong>替代作文：点部位 → 选场景 → 做两三个标准动作 → 拖滑条打分。信息量远大于一句话，认知成本却低得多。</p>
+    </div>
+    <div class="finding">
+      <span class="tag">内容</span>
+      <h4>完全缺失「知识」这一层</h4>
+      <p>Oura 里的睡眠分数、生物钟、睡眠负债这些知识卡，真正的作用是在用户还没有任何数据时，告诉他<strong>这个 app 懂什么、能帮你什么</strong>。它是不依赖用户数据就能消费的内容资产。</p>
+      <p>Nomon 目前没有这一层，所以首屏只能是空的，用户也就无从判断值不值得投入。</p>
+    </div>
+    <div class="finding">
+      <span class="tag">视角</span>
+      <h4>Myself 页展示的是系统内部状态</h4>
+      <p>“Thoughts 2 / 1 signal taking shape” 是开发者视角。用户真正关心的只有三件事：<strong>我的肩膀现在怎么样？什么时候能好？今天能不能去练？</strong></p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>二 · 把 Oura 的四层结构原样搬过来</h2>
+  <p class="sub">Nomon 缺的不是功能，是这四层的对应物。</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Oura 的层</th><th></th><th>Nomon 的对应物</th></tr></thead>
+      <tbody>
+        <tr><td>指环传感器（被动采集）</td><td class="arrow">→</td><td><strong>动作自查</strong>：2 分钟、3 个标准动作、点选加滑条</td></tr>
+        <tr><td>Readiness / Sleep / Activity 分数</td><td class="arrow">→</td><td><strong>恢复分数</strong>：按受伤部位，0–100</td></tr>
+        <tr><td>Contributors（HRV、静息心率、体温…）</td><td class="arrow">→</td><td><strong>贡献因子</strong>：疼痛强度 / 活动度 / 日常功能 / 变化趋势</td></tr>
+        <tr><td>Learn 知识库</td><td class="arrow">→</td><td><strong>知识卡库</strong>：12–20 张，冷启动内容兼解释弹药</td></tr>
+        <tr><td>Tags 标签</td><td class="arrow">→</td><td><strong>诱因标签</strong>：久坐 / 深蹲日 / 跑量突增 / 睡姿</td></tr>
+        <tr><td>Trends 趋势</td><td class="arrow">→</td><td><strong>恢复曲线 + 阶段</strong>：急性期 / 恢复期 / 重返运动</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <h2>三 · Today 首屏怎么改</h2>
+  <p class="sub">核心：把空文本框换成身体地图。点一个部位的成本几乎为零，而它给出的信息比用户随手写的一句话更结构化。</p>
+
+  <div class="mocks">
+    <div class="mockcol">
+      <p class="caption">现在</p>
+      <div class="phone">
+        <div class="statusbar"><span>16:32</span><span>TUE · AUG 18</span></div>
+        <div class="mockhead">Start from your own words.</div>
+        <div class="empty">大片空白<br>用户不知道该输入什么<br>也不知道输入有什么用</div>
+        <div class="card"><span class="k">Aug 16</span><span class="v">“睡眠不足”</span></div>
+        <div class="btn">补充近况</div>
+        <div class="tabbar"><span class="on">Today</span><span>Myself</span><span>Insights</span><span>Calendar</span></div>
+      </div>
+    </div>
+
+    <div class="mockcol after">
+      <p class="caption">建议</p>
+      <div class="phone">
+        <div class="statusbar"><span>16:32</span><span>TUE · AUG 18</span></div>
+        <div class="bodymap">
+          <svg width="72" height="118" viewBox="0 0 72 118" role="img" aria-label="身体地图示意，右肩标记为待关注">
+            <g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity=".55">
+              <circle cx="36" cy="12" r="8"/>
+              <path d="M36 20v6"/>
+              <path d="M22 32c0-4 6-6 14-6s14 2 14 6v22c0 6-2 10-3 14H25c-1-4-3-8-3-14z"/>
+              <path d="M22 34 12 52l-2 16"/>
+              <path d="M50 34l10 18 2 16"/>
+              <path d="M29 68l-2 24-1 18"/>
+              <path d="M43 68l2 24 1 18"/>
+            </g>
+            <circle cx="50" cy="35" r="7" fill="var(--acute)" opacity=".18"/>
+            <circle cx="50" cy="35" r="3.4" fill="var(--acute)"/>
+          </svg>
+        </div>
+        <div class="card accent">
+          <span class="k">右肩 · 恢复中</span>
+          <div class="scorerow"><span class="scorenum">62</span><span class="scoredelta">+5 比昨天</span></div>
+          <span class="v" style="display:block;margin-top:6px;">夜间痛消失是这次主要的改善项。</span>
+        </div>
+        <div class="card"><span class="k">今天</span><span class="v">✓ 做：贴墙爬手 ×10<br>✕ 避开：过顶推举<br>◎ 留意：抬手是否卡顿</span></div>
+        <div class="card"><span class="k">读一读</span><span class="v">为什么「完全休息」经常反而拖慢恢复</span></div>
+        <div class="tabbar"><span class="on">Today</span><span>我的部位</span><span>Insights</span><span>计划</span></div>
+      </div>
+    </div>
+  </div>
+
+  <h3>三段结构</h3>
+  <ul>
+    <li><strong>顶部｜身体地图。</strong>人形剪影，正背面可切换，可点选部位。有记录的部位显示状态色（红=急性 / 黄=恢复中 / 绿=已缓解）。没有任何数据时也是完整可交互的：「哪里不舒服？点一下。」</li>
+    <li><strong>中部｜今日卡片。</strong>有数据时是分数 + 一句自然语言解释 + 今天的三条建议；没数据时是一张显眼的行动卡「2 分钟自查，看看这是什么问题」。</li>
+    <li><strong>下部｜知识卡流。</strong>永远有内容。新用户第一次打开，看到的就是这些卡填满屏幕，滑两下就明白这个 app 懂运动损伤。</li>
+  </ul>
+</section>
+
+<section>
+  <h2>四 · 「2 分钟自查」替代自由文本</h2>
+  <p class="sub">五步，一步一屏，全部是点选和滑条，不需要打字。</p>
+
+  <div class="steps">
+    <div class="step"><span class="n">01</span><div class="body"><h4>哪里</h4><p>身体地图点选：肩 / 膝 / 腰 / 踝…，再细分前后侧。</p></div></div>
+    <div class="step"><span class="n">02</span><div class="body"><h4>什么时候开始的</h4><p>今天 / 这周 / 一个月内 / 更久。这一步决定「急性还是慢性」，是后面所有建议的分岔点。</p></div></div>
+    <div class="step"><span class="n">03</span><div class="body"><h4>怎么弄的</h4><p>举重物 / 跑步 / 球类扭伤 / 睡醒就痛 / 说不清。「说不清」必须是合法选项。</p></div></div>
+    <div class="step"><span class="n">04</span><div class="body"><h4>动作测试</h4><p>针对该部位给 2–3 个标准动作，每个配示意图或三秒短视频：「手臂从体侧举过头顶」→ 滑条打疼痛 0–10，再三档选「能举到哪」。<strong>这是 Nomon 版的传感器读数</strong>，可量化、可复测、可画曲线。</p></div></div>
+    <div class="step flag"><span class="n">05</span><div class="body"><h4>红旗筛查</h4><p>麻木 / 明显无力 / 关节外观变形 / 夜间痛醒 / 发烧。命中任意一条，流程立即转向「建议尽快就医」，不再给自我处理方案。</p></div></div>
+  </div>
+
+  <p>走完五步之后，才出现自由文本：<strong>「还有什么想补充的？（可跳过）」</strong> —— AI 对话应该放在这里，作为结构化数据的补充，而不是作为入口的门槛。</p>
+
+  <p>顺带一句：AI 不是省掉产品设计的借口。用户不擅长凭空描述身体状态，AI 也不擅长从一句「有点痛」里问出全部信息。让结构化流程拿到八成信息，AI 负责剩下两成的追问和解释——这才是 AI 用对了地方。</p>
+</section>
+
+<section>
+  <h2>五 · 结果页：第一次就必须给满</h2>
+  <p class="sub">最关键的一屏。绝对不能说「再记几条才能看到规律」。</p>
+  <div class="steps">
+    <div class="step"><span class="n">A</span><div class="body"><h4>一个带可能性分级的判断，并说出依据</h4><p>「最可能是肩袖肌腱受到激惹，而不是撕裂——依据：你能主动把手举过头，且没有夜间剧痛。」说了依据，用户才理解后面为什么要一次次复测。</p></div></div>
+    <div class="step"><span class="n">B</span><div class="body"><h4>一个恢复分数</h4><p>附四个贡献因子，每个都能点开看自己的数值和解释。</p></div></div>
+    <div class="step"><span class="n">C</span><div class="body"><h4>今天就能做的三件事</h4><p>一个动作、一个要避开的动作、一个要观察的信号。不要给十条。</p></div></div>
+    <div class="step"><span class="n">D</span><div class="body"><h4>一条预期时间线</h4><p>「这类问题通常 1–3 周缓解。7 天后我会提醒你复测；如果没有改善，说明假设需要修正。」这一句同时给了预期、给了回访理由、埋下了「复测」这个留存钩子。</p></div></div>
+  </div>
+</section>
+
+<section>
+  <h2>六 · 恢复分数怎么算</h2>
+  <p class="sub">0–100 分，四个贡献因子，每个都可点开看数值和解释——照搬 Oura contributors 的做法。</p>
+
+  <div class="bars">
+    <div class="bar"><span>疼痛强度</span><span class="track"><span class="fill" style="width:100%"></span></span><span class="wt">35%</span></div>
+    <div class="bar"><span>活动度 / 功能</span><span class="track"><span class="fill" style="width:86%"></span></span><span class="wt">30%</span></div>
+    <div class="bar"><span>日常影响</span><span class="track"><span class="fill" style="width:57%"></span></span><span class="wt">20%</span></div>
+    <div class="bar"><span>变化趋势</span><span class="track"><span class="fill" style="width:43%"></span></span><span class="wt">15%</span></div>
+  </div>
+  <p style="font-size:14.5px;color:var(--ink-3);">数据来源依次是：当前疼痛评分 0–10 ／ 标准动作能否完成、完成到什么程度 ／ 穿衣、提物、睡眠受影响程度的三四个点选题 ／ 最近三次评估的斜率。</p>
+
+  <p>两条纪律：<strong>可解释优先于精确</strong>——用户信任分数是因为能点开看见「为什么是 62 分」，不是因为公式复杂；<strong>文案上说清楚这是「你的主观状态被量化了」</strong>，不是医学诊断指标。</p>
+</section>
+
+<section>
+  <h2>七 · 其余几个页面</h2>
+
+  <h3>Myself → 我的部位档案</h3>
+  <p>删掉「Thoughts 2 / 1 signal taking shape」。改成每个受伤部位一张卡，点进去是这个部位的完整档案：恢复曲线、当前阶段（急性期 → 恢复期 → 重返运动，每个阶段写明这一阶段的目标是什么）、疼痛与活动度的分项趋势、复测提醒、事件时间线。</p>
+
+  <h3>Insights → 分成两层，永远不空</h3>
+  <p>上半是<strong>个人洞察</strong>（需要数据）：「你的肩痛在深蹲日的第二天加重，已经出现 3 次」「活动度这周提升了 20°，但疼痛评分没变——这通常是好现象」。下半是<strong>知识库</strong>（永远可读），分五类：认识疼痛 / 常见部位 / 恢复原理 / 训练与负荷 / 什么时候必须看医生。</p>
+
+  <h3>Calendar → 恢复日历</h3>
+  <p>不是「我哪天记了什么」，而是「我该做什么」：今日康复动作打卡、复测日、阶段里程碑。让日历成为计划工具，不是档案柜。</p>
+
+  <h3>Onboarding：30 秒摸到第一个价值</h3>
+  <p>不要一上来就要注册。三屏：一，三句话价值主张——Nomon 帮你搞清楚这个疼是什么、能不能继续练、大概多久能好；二，身体地图「现在哪里不舒服？」（提供「暂时没有，先看看」直接进知识库）；三，2 分钟自查出结果。<strong>这时候才</strong>请求注册：「注册一下，把你的恢复记录保存下来。」先证明有用，再要账号，这个顺序不能反。</p>
+</section>
+
+<section>
+  <h2>八 · 首批 12 张知识卡</h2>
+  <p class="sub">每张 200–400 字加一张图，30 秒读完。它们既是冷启动的内容，又是结果页的解释弹药——可以直接被引用：「因为你符合 X，建议读这张」。</p>
+  <div class="kcards">
+    <div class="kcard"><span class="i">01</span><span>疼痛 ≠ 损伤：疼痛评分怎么用</span></div>
+    <div class="kcard"><span class="i">02</span><span>延迟性肌肉酸痛和真正的伤怎么区分</span></div>
+    <div class="kcard"><span class="i">03</span><span>急性期 48 小时：PEACE &amp; LOVE（RICE 已过时）</span></div>
+    <div class="kcard"><span class="i">04</span><span>冰敷到底该不该用</span></div>
+    <div class="kcard"><span class="i">05</span><span>什么叫「可接受的疼痛」：0–3 分原则</span></div>
+    <div class="kcard"><span class="i">06</span><span>活动度为什么比疼痛更能反映恢复</span></div>
+    <div class="kcard"><span class="i">07</span><span>为什么「完全休息」经常拖慢恢复</span></div>
+    <div class="kcard"><span class="i">08</span><span>离心训练为什么对肌腱特别有效</span></div>
+    <div class="kcard"><span class="i">09</span><span>肌肉 / 肌腱 / 韧带的愈合时间差异</span></div>
+    <div class="kcard"><span class="i">10</span><span>六种红旗信号：出现就别自己处理</span></div>
+    <div class="kcard"><span class="i">11</span><span>什么时候可以重返运动</span></div>
+    <div class="kcard"><span class="i">12</span><span>恢复不是直线：平台期和小反复是正常的</span></div>
+  </div>
+</section>
+
+<section>
+  <h2>九 · 安全底线</h2>
+  <p class="sub">健康类产品的硬约束，必须先于功能实现。</p>
+  <div class="callout">
+    <h3>不可协商的五条</h3>
+    <ul>
+      <li>红旗筛查强制前置，命中直接转向就医建议，不给自我处理方案</li>
+      <li>全程措辞用「可能 / 常见于 / 建议」，永远不用「诊断」「确诊」</li>
+      <li>每个结果页固定一行免责说明，加一个「找专业人士」的入口</li>
+      <li>不给任何药物剂量建议</li>
+      <li>未成年人受伤、外伤性事故、疼痛持续加重——一律转向线下</li>
+    </ul>
+  </div>
+  <p style="margin-top:20px;">这不只是合规。一个会说「这个我不该替你判断，去看医生」的 app，比一个什么都敢答的 app 更值得信任——它本身就是产品可信度的一部分。</p>
+</section>
+
+<section>
+  <h2>十 · 优先级</h2>
+  <div class="prio">
+    <div class="plane p0">
+      <span class="lvl">P0</span>
+      <div>
+        <h4>身体地图入口 · 2 分钟自查 · 即时结果页 · 12 张知识卡</h4>
+        <p>直接解决「不知道该输入什么、不知道有什么用」。这一层做完，产品才算成立。</p>
+      </div>
+    </div>
+    <div class="plane p1">
+      <span class="lvl">P1</span>
+      <div>
+        <h4>恢复分数与贡献因子 · 部位档案与恢复曲线 · 复测提醒</h4>
+        <p>建立留存和长期价值：让用户有理由第二次、第十次打开。</p>
+      </div>
+    </div>
+    <div class="plane p2">
+      <span class="lvl">P2</span>
+      <div>
+        <h4>视频动作分析 · 恢复计划日历 · 诱因标签的趋势关联</h4>
+        <p>拉开与通用聊天机器人的差距。</p>
+      </div>
+    </div>
+  </div>
+
+  <h3>关于视频拍摄</h3>
+  <p>建议放 P2，而且不要做成「AI 看视频给诊断」——可靠性和责任都撑不住。做成 <strong>「标准动作对照 + 活动度测量」</strong> 更实际也更容易实现：把摄像头当量角器用，测抬臂角度、屈膝角度，得到客观、可复测、可画曲线的数字。这才是 Nomon 真正的传感器，也是它相对纯聊天 AI 的护城河。</p>
+</section>
+
+<section>
+  <div class="thesis">
+    <p>现在的 Nomon 是「你先说，我再帮你」。<br>应该改成「我先让你看见自己的身体，你自然就想说了」。</p>
+    <span class="from">一句话总结</span>
+  </div>
+</section>
+
+<footer>
+  Nomon 改进设计方案 v1.0 · 2026-08-18<br>
+  Harvey（问题与方向）+ Claude Code (Opus 5)（方案撰写）<br>
+  依据 Nomon 测试版 Today / Myself / Insights 页面实测体验，参照 Oura App 产品结构。
+</footer>
+
+</div>
+
+</body>
+</html>
