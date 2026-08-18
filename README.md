@@ -10,13 +10,14 @@
 
 | 文件 | 是什么 |
 |---|---|
-| [`demo/index.html`](demo/index.html) | **可点击的交互原型**。走一遍完整的「2 分钟自查」流程：身体地图 → 五步问诊 → 结果页。左边解释每一屏在解决什么问题。分数是根据你的输入实时算出来的，不是写死的假数据。 |
+| [`demo/index.html`](demo/index.html) | **完整 App 原型**。身体地图入口 → 五步评估 → 结果页 → 7 天恢复计划 → 部位档案 → 洞察与知识库，带底部导航、复测浮层、恢复曲线、任务打卡环。恢复分数按你的输入实时计算。 |
+| [`demo/annotated.html`](demo/annotated.html) | 同一套流程的**讲解版**：每一屏旁边说明它在解决什么问题、对应 Oura 的哪一层。想理解「为什么这么改」看这个。 |
 | [`docs/design-proposal.html`](docs/design-proposal.html) | 完整设计方案（网页版，含线框对比图） |
 | [`docs/design-proposal.md`](docs/design-proposal.md) | 同一份方案的 Markdown 原稿 |
 
 ## 在线版（不用 clone，手机上直接点）
 
-- 可点击原型 — https://claude.ai/code/artifact/e9e10945-ccb3-416b-94d4-321ac86f2e19
+- 完整 App 原型 — https://claude.ai/code/artifact/e9e10945-ccb3-416b-94d4-321ac86f2e19
 - 设计方案网页版 — https://claude.ai/code/artifact/adee5f78-548a-4bea-b7f3-6b7118e5b360
 
 ## 怎么看

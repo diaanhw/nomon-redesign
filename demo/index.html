@@ -3,728 +3,1003 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nomon 交互原型 · 2 分钟自查</title>
+<title>Nomon 原型 · 身体地图版</title>
 <style>
 :root{
-  --ground:#F5F7F6; --surface:#FFFFFF; --surface-2:#EDF1EF;
-  --ink:#161F1D; --ink-2:#48544F; --ink-3:#7C8985;
-  --rule:#DBE2DF; --rule-strong:#C3CEC9;
-  --accent:#0F6E62; --accent-soft:#DCEBE7;
+  --page:#E8E5DF; --bg:#F2F0EB; --surface:#FFFFFF; --sunk:#EDEAE3;
+  --ink:#1B1F1C; --ink-2:#4E564F; --ink-3:#8A918A;
+  --rule:#DFDBD2; --rule-2:#C9C4B8;
+  --green:#2E6B57; --green-deep:#2A5546; --green-ink:#F0EFE9;
+  --terra:#B5583A; --terra-soft:#F2DFD6;
   --ok:#3F8F5B; --warn:#B5822B; --acute:#AC4839;
-  --shadow:0 1px 2px rgba(22,31,29,.06), 0 10px 30px rgba(22,31,29,.08);
   --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Songti SC","Source Han Serif SC",Georgia,serif;
+  --shadow:0 1px 2px rgba(27,31,28,.05), 0 18px 44px rgba(27,31,28,.10);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
-    --ground:#111614; --surface:#19201E; --surface-2:#232B28;
-    --ink:#E7ECEA; --ink-2:#A5B2AD; --ink-3:#77837F;
-    --rule:#2B3532; --rule-strong:#3B4642;
-    --accent:#54B7A6; --accent-soft:#1D3330;
+    --page:#0E120F; --bg:#161A17; --surface:#1D231F; --sunk:#242B26;
+    --ink:#E9EDE8; --ink-2:#A7AFA7; --ink-3:#79817A;
+    --rule:#2A322C; --rule-2:#3A433C;
+    --green:#7CBBA2; --green-deep:#22392F; --green-ink:#E9EDE8;
+    --terra:#D4795A; --terra-soft:#3A2519;
     --ok:#5FB37B; --warn:#D2A045; --acute:#D2705E;
-    --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.35);
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 18px 44px rgba(0,0,0,.4);
   }
 }
 :root[data-theme="dark"]{
-  --ground:#111614; --surface:#19201E; --surface-2:#232B28;
-  --ink:#E7ECEA; --ink-2:#A5B2AD; --ink-3:#77837F;
-  --rule:#2B3532; --rule-strong:#3B4642;
-  --accent:#54B7A6; --accent-soft:#1D3330;
+  --page:#0E120F; --bg:#161A17; --surface:#1D231F; --sunk:#242B26;
+  --ink:#E9EDE8; --ink-2:#A7AFA7; --ink-3:#79817A;
+  --rule:#2A322C; --rule-2:#3A433C;
+  --green:#7CBBA2; --green-deep:#22392F; --green-ink:#E9EDE8;
+  --terra:#D4795A; --terra-soft:#3A2519;
   --ok:#5FB37B; --warn:#D2A045; --acute:#D2705E;
-  --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 30px rgba(0,0,0,.35);
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 18px 44px rgba(0,0,0,.4);
 }
 *{box-sizing:border-box}
 html,body{margin:0}
 body{
-  background:var(--ground); color:var(--ink);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  font-size:16px; line-height:1.7; -webkit-font-smoothing:antialiased;
+  background:var(--page); color:var(--ink); min-height:100vh;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  display:flex; flex-direction:column; align-items:center; gap:18px; padding:34px 16px 56px;
 }
-.page{max-width:1080px; margin:0 auto; padding:40px 24px 80px;}
-.masthead{margin-bottom:36px; border-bottom:1px solid var(--rule); padding-bottom:24px;}
-.eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); margin:0 0 12px;}
-h1{font-family:var(--serif); font-size:clamp(28px,5vw,40px); line-height:1.2; font-weight:600; margin:0 0 12px; letter-spacing:-.01em;}
-.lede{margin:0; color:var(--ink-2); max-width:62ch; font-size:17px;}
+.pageHead{text-align:center; max-width:600px;}
+.pageHead .kicker{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--green); margin:0 0 8px;}
+.pageHead h1{font-family:var(--serif); font-size:26px; font-weight:600; margin:0 0 8px; letter-spacing:-.01em;}
+.pageHead p{margin:0; color:var(--ink-2); font-size:14.5px; line-height:1.65;}
 
-.stage{display:grid; grid-template-columns:1fr 372px; gap:44px; align-items:start;}
-@media (max-width:900px){ .stage{grid-template-columns:1fr; gap:32px;} .notes{order:2} .deviceCol{order:1} }
-
-/* ---- notes panel ---- */
-.notes{position:sticky; top:32px;}
-@media (max-width:900px){ .notes{position:static} }
-.noteStep{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin:0 0 10px;}
-.noteTitle{font-family:var(--serif); font-size:25px; line-height:1.3; font-weight:600; margin:0 0 14px; text-wrap:balance;}
-.noteBody{color:var(--ink-2); margin:0 0 18px; font-size:16px;}
-.noteBody strong{color:var(--ink); font-weight:650;}
-.mapping{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--accent); border-radius:2px; padding:16px 18px; box-shadow:var(--shadow);}
-.mapping .k{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); display:block; margin-bottom:6px;}
-.mapping .v{font-size:15px; color:var(--ink-2); line-height:1.6;}
-.progress{display:flex; gap:5px; margin-top:24px;}
-.progress i{height:3px; flex:1; background:var(--rule-strong); border-radius:2px; transition:background .3s;}
-.progress i.on{background:var(--accent);}
-
-/* ---- device ---- */
-.deviceCol{display:flex; flex-direction:column; align-items:center; gap:16px;}
+/* ============ device ============ */
 .device{
-  width:372px; height:760px; background:var(--surface);
-  border:1px solid var(--rule-strong); border-radius:34px; padding:12px;
-  box-shadow:var(--shadow); position:relative; overflow:hidden;
+  width:390px; height:820px; background:var(--bg); border:1px solid var(--rule-2);
+  border-radius:42px; box-shadow:var(--shadow); position:relative; overflow:hidden; flex:none;
 }
-@media (max-width:420px){ .device{width:100%; height:720px; border-radius:26px;} }
+@media (max-width:430px){ .device{width:100%; height:780px; border-radius:30px;} }
+.notch{position:absolute; top:0; left:50%; transform:translateX(-50%); width:120px; height:26px; background:var(--page); border-radius:0 0 14px 14px; z-index:9;}
+.statusbar{
+  position:absolute; top:0; left:0; right:0; height:44px; display:flex; align-items:center;
+  justify-content:space-between; padding:0 26px; font-size:13px; font-weight:600; color:var(--ink); z-index:8;
+}
+.statusbar .r{display:flex; gap:5px; align-items:center; font-size:11px; color:var(--ink-2); font-family:var(--mono);}
+
 .screen{
-  position:absolute; inset:12px; border-radius:24px; background:var(--surface);
-  display:none; flex-direction:column; padding:16px 18px 12px; overflow-y:auto;
-  animation:fade .32s ease;
+  position:absolute; top:44px; left:0; right:0; bottom:0; display:none; flex-direction:column;
+  overflow-y:auto; overscroll-behavior:contain; padding:8px 20px 92px;
 }
-.screen.active{display:flex;}
-@keyframes fade{from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none}}
-@media (prefers-reduced-motion:reduce){ .screen{animation:none} }
-.bar{display:flex; justify-content:space-between; font-family:var(--mono); font-size:10px; color:var(--ink-3); letter-spacing:.06em; flex:none; margin-bottom:14px;}
-.scrTitle{font-family:var(--serif); font-size:23px; line-height:1.35; font-weight:600; margin:0 0 6px; text-wrap:balance;}
-.scrHint{font-size:13.5px; color:var(--ink-3); margin:0 0 18px; line-height:1.6;}
-.grow{flex:1;}
-.foot{flex:none; padding-top:14px; display:grid; gap:8px;}
+.screen.active{display:flex; animation:slide .34s cubic-bezier(.22,.8,.3,1);}
+.screen.noNav{padding-bottom:24px;}
+@keyframes slide{from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:none}}
+@media (prefers-reduced-motion:reduce){ .screen.active{animation:none} }
 
-/* controls */
-.btn{
-  display:block; width:100%; border:0; border-radius:9px; padding:14px;
-  background:var(--accent); color:#fff; font:inherit; font-size:15px; font-weight:600;
-  cursor:pointer; text-align:center; transition:filter .15s;
-}
-.btn:hover{filter:brightness(1.08)} .btn:disabled{opacity:.4; cursor:not-allowed}
-.btn.ghost{background:transparent; color:var(--ink-2); border:1px solid var(--rule-strong); font-weight:500;}
-.btn.danger{background:var(--acute)}
-.btn:focus-visible,.opt:focus-visible,.chip:focus-visible,.hot:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+/* ============ app bar ============ */
+.appbar{display:flex; align-items:center; justify-content:space-between; padding:6px 0 14px; flex:none;}
+.wordmark{font-family:var(--serif); font-size:23px; font-weight:600; letter-spacing:-.01em; line-height:1;}
+.wordmark small{display:block; font-family:inherit; font-size:9.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); font-weight:400; margin-bottom:3px;}
+.avatar{width:32px; height:32px; border-radius:50%; background:var(--sunk); display:grid; place-items:center; font-size:13px; font-weight:600; color:var(--ink-2);}
+.backbar{display:flex; align-items:center; gap:12px; padding:4px 0 16px; flex:none;}
+.backBtn{width:32px; height:32px; border-radius:50%; border:0; background:var(--sunk); color:var(--ink); font-size:16px; cursor:pointer; display:grid; place-items:center; flex:none;}
+.stepLabel{font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);}
+.prog{height:3px; background:var(--rule); border-radius:2px; overflow:hidden; margin-bottom:20px; flex:none;}
+.prog i{display:block; height:100%; background:var(--green); border-radius:2px; width:0; transition:width .45s cubic-bezier(.2,.8,.3,1);}
+
+/* ============ hero ============ */
+.hero{background:var(--green-deep); border-radius:22px; padding:22px 20px 20px; color:var(--green-ink); margin-bottom:20px; flex:none;}
+.hero .eyebrow{font-family:var(--mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; opacity:.62; margin:0 0 9px;}
+.hero h2{font-family:var(--serif); font-size:27px; font-weight:600; margin:0 0 7px; line-height:1.25;}
+.hero p{margin:0 0 4px; font-size:14px; line-height:1.6; opacity:.82;}
+.mapBox{display:flex; justify-content:center; padding:6px 0 2px;}
+.hot{cursor:pointer}
+.hot .halo{fill:currentColor; opacity:0; transition:opacity .18s}
+.hot:hover .halo, .hot:focus-visible .halo{opacity:.16}
+.hint{text-align:center; font-size:12px; opacity:.62; margin:2px 0 0;}
+
+/* ============ generic ============ */
+h3.sec{font-size:15px; font-weight:650; margin:22px 0 11px; display:flex; justify-content:space-between; align-items:baseline;}
+h3.sec span{font-family:var(--mono); font-size:10.5px; font-weight:400; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-3);}
+.scrH{font-family:var(--serif); font-size:25px; font-weight:600; line-height:1.3; margin:0 0 7px;}
+.scrP{font-size:13.5px; color:var(--ink-3); line-height:1.6; margin:0 0 20px;}
+.grow{flex:1; min-height:8px;}
+.pillRow{display:flex; flex-wrap:wrap; gap:8px;}
+.pill{background:var(--surface); border:1px solid var(--rule); border-radius:20px; padding:9px 15px; font:inherit; font-size:13.5px; color:var(--ink); cursor:pointer; transition:border-color .15s, background .15s;}
+.pill:hover{border-color:var(--green)}
+.pill[aria-pressed="true"]{background:var(--green); border-color:var(--green); color:#fff}
+.getRow{display:grid; grid-template-columns:repeat(3,1fr); gap:9px;}
+.getCard{background:var(--surface); border:1px solid var(--rule); border-radius:14px; padding:13px 12px;}
+.getCard .ic{width:26px; height:26px; border-radius:8px; background:var(--sunk); display:grid; place-items:center; font-size:13px; margin-bottom:9px; color:var(--green);}
+.getCard .t{font-size:12.5px; line-height:1.45; font-weight:600;}
+.getCard .s{font-size:11px; color:var(--ink-3); margin-top:3px; line-height:1.4;}
+
+.card{background:var(--surface); border:1px solid var(--rule); border-radius:16px; padding:16px 17px; margin-bottom:10px;}
+.card .k{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); display:block; margin-bottom:8px;}
+.card .v{font-size:14px; line-height:1.6;}
+.card.tap{cursor:pointer; transition:border-color .15s}
+.card.tap:hover{border-color:var(--green)}
+.artRow{display:flex; align-items:center; gap:12px;}
+.artRow .num{font-family:var(--mono); font-size:11px; color:var(--ink-3); flex:none;}
+.artRow .txt{flex:1; font-size:14px; line-height:1.45;}
+.artRow .arw{color:var(--ink-3); font-size:14px;}
+
+/* options */
 .opts{display:grid; gap:9px;}
-.opt{
-  display:block; width:100%; text-align:left; background:var(--surface-2); border:1px solid transparent;
-  border-radius:9px; padding:14px 16px; font:inherit; font-size:15px; color:var(--ink); cursor:pointer;
-  transition:background .15s, border-color .15s;
-}
-.opt:hover{border-color:var(--rule-strong)}
-.opt[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent);}
-.opt .sm{display:block; font-size:12.5px; color:var(--ink-3); margin-top:2px;}
-.chips{display:flex; flex-wrap:wrap; gap:7px;}
-.chip{
-  background:var(--surface-2); border:1px solid transparent; border-radius:20px; padding:8px 14px;
-  font:inherit; font-size:13.5px; color:var(--ink-2); cursor:pointer;
-}
-.chip[aria-pressed="true"]{background:var(--accent-soft); border-color:var(--accent); color:var(--ink);}
+.opt{display:block; width:100%; text-align:left; background:var(--surface); border:1px solid var(--rule); border-radius:14px; padding:15px 16px; font:inherit; font-size:15px; color:var(--ink); cursor:pointer; transition:border-color .15s, background .15s;}
+.opt:hover{border-color:var(--rule-2)}
+.opt .sm{display:block; font-size:12px; color:var(--ink-3); margin-top:3px; line-height:1.45;}
+.opt[aria-pressed="true"]{border-color:var(--green); background:color-mix(in srgb, var(--green) 7%, var(--surface));}
+.opt.flag[aria-pressed="true"]{border-color:var(--acute); background:color-mix(in srgb, var(--acute) 8%, var(--surface));}
 
-.testBlock{background:var(--surface-2); border-radius:11px; padding:14px 15px; margin-bottom:12px;}
-.testBlock h4{margin:0 0 3px; font-size:15px; font-weight:650;}
-.testBlock .desc{margin:0 0 12px; font-size:12.5px; color:var(--ink-3); line-height:1.55;}
-.slabel{display:flex; justify-content:space-between; font-family:var(--mono); font-size:11px; color:var(--ink-3); margin-bottom:5px; letter-spacing:.04em;}
-.slabel b{color:var(--accent); font-size:14px; font-variant-numeric:tabular-nums;}
-input[type=range]{width:100%; margin:0 0 12px; accent-color:var(--accent); height:22px;}
-.romRow{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
-.romRow .chip{border-radius:7px; text-align:center; font-size:12.5px; padding:9px 4px; justify-content:center;}
+/* movement test */
+.test{background:var(--surface); border:1px solid var(--rule); border-radius:16px; padding:15px 16px; margin-bottom:11px;}
+.test h4{margin:0 0 3px; font-size:14.5px; font-weight:650;}
+.test .d{margin:0 0 13px; font-size:12px; color:var(--ink-3); line-height:1.5;}
+.slabel{display:flex; justify-content:space-between; align-items:baseline; font-size:11.5px; color:var(--ink-3); margin-bottom:6px;}
+.slabel b{font-family:var(--mono); font-size:16px; color:var(--green); font-variant-numeric:tabular-nums;}
+input[type=range]{width:100%; margin:0 0 14px; accent-color:var(--green); height:24px;}
+.rom{display:grid; grid-template-columns:repeat(3,1fr); gap:6px;}
+.rom .pill{border-radius:10px; text-align:center; padding:9px 3px; font-size:12px;}
 
-/* body map */
-.mapWrap{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px;}
-.hot{cursor:pointer;}
-.hot circle.halo{fill:var(--accent); opacity:0; transition:opacity .2s;}
-.hot:hover circle.halo{opacity:.14;}
-.toast{
-  position:absolute; left:50%; bottom:96px; transform:translateX(-50%);
-  background:var(--ink); color:var(--ground); font-size:13px; padding:9px 16px; border-radius:20px;
-  opacity:0; pointer-events:none; transition:opacity .3s; white-space:nowrap; z-index:5;
-}
-.toast.show{opacity:.94;}
+/* footer buttons */
+.foot{position:sticky; bottom:0; background:var(--bg); padding:14px 0 10px; display:grid; gap:8px; flex:none; margin-top:6px;}
+.foot::before{content:""; position:absolute; left:0; right:0; top:-22px; height:22px; background:linear-gradient(to top, var(--bg), transparent); pointer-events:none;}
+.btn{display:block; width:100%; border:0; border-radius:14px; padding:15px; background:var(--terra); color:#fff; font:inherit; font-size:15px; font-weight:600; cursor:pointer; transition:filter .15s;}
+.btn:hover{filter:brightness(1.07)}
+.btn:disabled{opacity:.35; cursor:not-allowed}
+.btn.green{background:var(--green)}
+.btn.ghost{background:transparent; border:1px solid var(--rule-2); color:var(--ink-2); font-weight:500}
+.btn.danger{background:var(--acute)}
+.btn:focus-visible,.opt:focus-visible,.pill:focus-visible,.hot:focus-visible,.card.tap:focus-visible,.navItem:focus-visible{outline:2px solid var(--green); outline-offset:2px}
 
-/* result */
-.verdict{background:var(--accent-soft); border-radius:12px; padding:16px 17px; margin-bottom:12px;}
-.verdict .lead{font-family:var(--serif); font-size:19px; line-height:1.45; margin:0 0 8px; font-weight:600;}
-.verdict .why{margin:0; font-size:13.5px; color:var(--ink-2); line-height:1.6;}
-.scoreCard{background:var(--surface-2); border-radius:12px; padding:16px 17px; margin-bottom:12px;}
-.scoreTop{display:flex; align-items:baseline; gap:10px; margin-bottom:4px;}
-.scoreBig{font-family:var(--mono); font-size:44px; font-weight:600; color:var(--accent); line-height:1; font-variant-numeric:tabular-nums;}
-.scoreOf{font-family:var(--mono); font-size:12px; color:var(--ink-3);}
-.scoreDelta{font-family:var(--mono); font-size:12px; color:var(--ok); margin-left:auto;}
-.scoreCap{font-size:13px; color:var(--ink-2); margin:0 0 14px;}
-.contrib{display:grid; gap:9px;}
-.cRow{display:grid; grid-template-columns:72px 1fr 46px; gap:9px; align-items:center; font-size:12.5px; color:var(--ink-2);}
-.cRow .track{display:block; height:6px; background:var(--rule); border-radius:3px; overflow:hidden;}
-.cRow .fill{display:block; height:100%; background:var(--accent); border-radius:3px; width:0; transition:width .7s cubic-bezier(.2,.7,.3,1);}
+/* ============ result ============ */
+.verdict{background:var(--green-deep); color:var(--green-ink); border-radius:20px; padding:20px; margin-bottom:11px;}
+.verdict .tier{display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; background:rgba(255,255,255,.16); padding:4px 10px; border-radius:20px; margin-bottom:12px;}
+.verdict h3{font-family:var(--serif); font-size:20px; line-height:1.4; margin:0 0 10px; font-weight:600;}
+.verdict p{margin:0; font-size:13px; line-height:1.65; opacity:.86;}
+.whyBtn{margin-top:12px; background:rgba(255,255,255,.14); border:0; color:inherit; font:inherit; font-size:12.5px; padding:8px 14px; border-radius:20px; cursor:pointer;}
+.whyBox{margin-top:11px; font-size:12.5px; line-height:1.65; opacity:.86; border-top:1px solid rgba(255,255,255,.18); padding-top:11px; display:none;}
+.whyBox.open{display:block; animation:slide .3s ease}
+
+.scoreCard{background:var(--surface); border:1px solid var(--rule); border-radius:20px; padding:18px 17px; margin-bottom:11px;}
+.ringWrap{display:flex; align-items:center; gap:17px; margin-bottom:15px;}
+.ring{position:relative; width:92px; height:92px; flex:none;}
+.ring svg{transform:rotate(-90deg)}
+.ring .num{position:absolute; inset:0; display:grid; place-items:center; font-family:var(--mono); font-size:27px; font-weight:600; color:var(--green); font-variant-numeric:tabular-nums;}
+.ringMeta .lbl{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); display:block; margin-bottom:5px;}
+.ringMeta .st{font-size:15px; font-weight:650; margin-bottom:4px;}
+.ringMeta .dt{font-size:12.5px; color:var(--ink-2); line-height:1.55;}
+.contrib{display:grid; gap:10px; border-top:1px solid var(--rule); padding-top:14px;}
+.cRow{display:grid; grid-template-columns:66px 1fr 40px; gap:10px; align-items:center; font-size:12.5px; color:var(--ink-2);}
+.cRow .track{display:block; height:6px; background:var(--sunk); border-radius:3px; overflow:hidden;}
+.cRow .fill{display:block; height:100%; width:0; background:var(--green); border-radius:3px; transition:width .8s cubic-bezier(.2,.8,.3,1);}
 .cRow .val{font-family:var(--mono); font-size:11.5px; color:var(--ink-3); text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap;}
-.cRow.muted .val{font-size:10.5px;}
-.cRow.muted .fill{background:var(--rule-strong)}
-.todo{background:var(--surface-2); border-radius:12px; padding:15px 17px; margin-bottom:12px;}
-.todo .k{font-family:var(--mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); display:block; margin-bottom:9px;}
-.todo li{list-style:none; font-size:14px; line-height:1.6; margin-bottom:7px; display:grid; grid-template-columns:20px 1fr; gap:4px;}
+.cRow.muted .fill{background:var(--rule-2)}
+.cRow.muted .val{font-size:10px}
+
+.todo li{list-style:none; display:grid; grid-template-columns:22px 1fr; gap:6px; font-size:13.5px; line-height:1.6; margin-bottom:9px;}
 .todo ul{margin:0; padding:0}
-.todo .m{font-family:var(--mono); font-weight:600;}
-.todo .do .m{color:var(--ok)} .todo .no .m{color:var(--acute)} .todo .watch .m{color:var(--warn)}
-.timeline{border:1px dashed var(--rule-strong); border-radius:12px; padding:14px 16px; font-size:13.5px; color:var(--ink-2); line-height:1.6; margin-bottom:12px;}
-.disclaim{font-size:11.5px; color:var(--ink-3); line-height:1.55; margin:4px 0 0;}
-.spark{display:block; margin:10px 0 0;}
+.todo .m{font-family:var(--mono); font-weight:700; font-size:12px; padding-top:2px;}
+.todo .do .m{color:var(--ok)} .todo .no .m{color:var(--acute)} .todo .wa .m{color:var(--warn)}
+.tl{border:1px dashed var(--rule-2); border-radius:16px; padding:15px 16px; font-size:13px; line-height:1.65; color:var(--ink-2); margin-bottom:11px;}
+.tl b{color:var(--ink)}
+.disc{font-size:11px; color:var(--ink-3); line-height:1.55; margin:2px 0 0;}
 
-/* referral */
-.referIcon{width:44px; height:44px; border-radius:50%; background:var(--acute); opacity:.14; margin-bottom:14px;}
-.flagList{background:var(--surface-2); border-radius:11px; padding:14px 16px; margin-bottom:14px;}
-.flagList li{font-size:14px; color:var(--ink-2); margin-bottom:5px;}
+/* ============ status pill ============ */
+.statusRow{display:flex; align-items:center; gap:9px; margin-bottom:14px;}
+.dot{width:9px; height:9px; border-radius:50%; flex:none}
+.dot.warn{background:var(--warn)} .dot.ok{background:var(--ok)} .dot.acute{background:var(--acute)}
+.statusRow .t{font-size:14.5px; font-weight:650}
+.statusRow .s{font-family:var(--mono); font-size:11.5px; color:var(--ink-3); margin-left:auto; font-variant-numeric:tabular-nums}
 
-/* filled home */
-.homeCard{background:var(--surface-2); border-radius:12px; padding:14px 16px; margin-bottom:10px;}
-.homeCard.accent{background:var(--accent-soft)}
-.homeCard .k{font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); display:block; margin-bottom:6px;}
-.homeCard .v{font-size:14px; line-height:1.6; color:var(--ink);}
-.tabbar{display:flex; justify-content:space-between; border-top:1px solid var(--rule); padding-top:10px; margin-top:10px; flex:none;}
-.tabbar span{font-size:10px; color:var(--ink-3); font-family:var(--mono);}
-.tabbar span.on{color:var(--accent); font-weight:600;}
+/* ============ stage stepper ============ */
+.stages{display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-bottom:8px}
+.stage{text-align:center; font-size:11px; color:var(--ink-3); line-height:1.4}
+.stage .bar{display:block; height:4px; border-radius:2px; background:var(--rule); margin-bottom:7px}
+.stage.on{color:var(--green); font-weight:650}
+.stage.on .bar{background:var(--green)}
+.stage.done .bar{background:color-mix(in srgb, var(--green) 45%, var(--rule))}
 
-.controls{display:flex; gap:10px; flex-wrap:wrap; justify-content:center;}
-.ctlBtn{background:transparent; border:1px solid var(--rule-strong); color:var(--ink-2); border-radius:20px; padding:7px 16px; font:inherit; font-size:13px; cursor:pointer;}
-.ctlBtn:hover{border-color:var(--accent); color:var(--accent);}
-.footer{margin-top:56px; padding-top:22px; border-top:1px solid var(--rule); font-family:var(--mono); font-size:11.5px; color:var(--ink-3); line-height:1.9;}
+/* ============ charts ============ */
+.chart{background:var(--surface); border:1px solid var(--rule); border-radius:16px; padding:16px 17px; margin-bottom:10px}
+.chartTop{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px}
+.chartTop .n{font-size:14px; font-weight:650}
+.chartTop .c{font-family:var(--mono); font-size:11.5px; color:var(--ok)}
+.chartTop .c.down{color:var(--acute)}
+.spark{display:block; width:100%; height:64px; overflow:visible}
+.spark .ln{fill:none; stroke:var(--green); stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round;
+  stroke-dasharray:var(--len); stroke-dashoffset:var(--len); animation:draw 1.1s cubic-bezier(.3,.8,.3,1) forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+@media (prefers-reduced-motion:reduce){ .spark .ln{animation:none; stroke-dashoffset:0} }
+.spark .ar{fill:var(--green); opacity:.09}
+.spark .gr{stroke:var(--rule); stroke-width:1; stroke-dasharray:2 4}
+.spark .dt{fill:var(--green)}
+.xax{display:flex; justify-content:space-between; font-family:var(--mono); font-size:9.5px; color:var(--ink-3); margin-top:7px}
+
+/* ============ plan ============ */
+.cal{display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:16px}
+.day{aspect-ratio:1; border-radius:11px; background:var(--surface); border:1px solid var(--rule); display:grid; place-items:center; align-content:center; gap:3px; font-size:11px; color:var(--ink-3)}
+.day b{font-size:13px; color:var(--ink); font-weight:600; font-variant-numeric:tabular-nums}
+.day.done{background:color-mix(in srgb, var(--green) 12%, var(--surface)); border-color:var(--green)}
+.day.done::after{content:"✓"; font-size:10px; color:var(--green)}
+.day.today{border-color:var(--terra); border-width:2px}
+.day.future{opacity:.45}
+.taskRing{display:flex; align-items:center; gap:16px; background:var(--surface); border:1px solid var(--rule); border-radius:18px; padding:16px 17px; margin-bottom:11px}
+.taskRing .ring{width:66px; height:66px}
+.taskRing .ring .num{font-size:17px}
+.task{display:flex; align-items:flex-start; gap:12px; background:var(--surface); border:1px solid var(--rule); border-radius:14px; padding:14px 15px; margin-bottom:8px; cursor:pointer; transition:border-color .15s}
+.task:hover{border-color:var(--rule-2)}
+.task .box{width:21px; height:21px; border-radius:7px; border:1.5px solid var(--rule-2); flex:none; display:grid; place-items:center; font-size:12px; color:transparent; transition:all .18s; margin-top:1px}
+.task[aria-pressed="true"] .box{background:var(--green); border-color:var(--green); color:#fff}
+.task[aria-pressed="true"] .nm{text-decoration:line-through; color:var(--ink-3)}
+.task .nm{font-size:14px; font-weight:600; line-height:1.4}
+.task .sub{font-size:12px; color:var(--ink-3); margin-top:2px; line-height:1.45}
+
+/* ============ insights ============ */
+.insight{background:var(--surface); border:1px solid var(--rule); border-left:3px solid var(--green); border-radius:14px; padding:14px 16px; margin-bottom:9px}
+.insight .t{font-size:14px; line-height:1.55; font-weight:600; margin-bottom:5px}
+.insight .s{font-size:12.5px; color:var(--ink-3); line-height:1.5}
+
+/* ============ article ============ */
+.artHead{background:var(--green-deep); color:var(--green-ink); border-radius:20px; padding:22px 20px; margin-bottom:16px}
+.artHead .k{font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; opacity:.6; margin:0 0 9px}
+.artHead h2{font-family:var(--serif); font-size:24px; margin:0; font-weight:600; line-height:1.3}
+.artBody p{font-size:14.5px; line-height:1.8; color:var(--ink-2); margin:0 0 15px}
+.artBody b{color:var(--ink)}
+.artCall{background:var(--terra-soft); border-radius:14px; padding:15px 16px; font-size:13.5px; line-height:1.65; color:var(--ink); margin-bottom:15px}
+
+/* ============ refer ============ */
+.referTop{background:color-mix(in srgb, var(--acute) 10%, var(--surface)); border:1px solid color-mix(in srgb, var(--acute) 30%, var(--rule)); border-radius:20px; padding:20px; margin-bottom:14px}
+.referTop .tier{display:inline-block; font-family:var(--mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--acute); background:color-mix(in srgb, var(--acute) 14%, transparent); padding:4px 10px; border-radius:20px; margin-bottom:12px}
+.referTop h3{font-family:var(--serif); font-size:21px; margin:0 0 9px; font-weight:600; line-height:1.35}
+.referTop p{margin:0; font-size:13.5px; line-height:1.65; color:var(--ink-2)}
+.referTop li{font-size:13.5px; color:var(--ink-2); margin-bottom:5px}
+
+/* ============ nav ============ */
+.nav{position:absolute; left:0; right:0; bottom:0; height:76px; background:color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter:blur(14px); border-top:1px solid var(--rule); display:flex; padding:9px 12px 0; z-index:7}
+.navItem{flex:1; background:none; border:0; font:inherit; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; color:var(--ink-3); padding:4px 0; border-radius:10px}
+.navItem .ic{font-size:17px; line-height:1}
+.navItem .lb{font-size:10px}
+.navItem.on{color:var(--green)}
+.navItem.on .lb{font-weight:650}
+
+/* ============ sheet & toast ============ */
+.backdrop{position:absolute; inset:0; background:rgba(20,24,21,.4); opacity:0; pointer-events:none; transition:opacity .28s; z-index:20}
+.backdrop.on{opacity:1; pointer-events:auto}
+.sheet{position:absolute; left:0; right:0; bottom:0; background:var(--bg); border-radius:26px 26px 0 0; padding:22px 20px 26px; transform:translateY(102%); transition:transform .34s cubic-bezier(.22,.8,.3,1); z-index:21; max-height:82%; overflow-y:auto}
+.sheet.on{transform:none}
+.sheet .grip{width:38px; height:4px; border-radius:2px; background:var(--rule-2); margin:0 auto 16px}
+.toast{position:absolute; left:50%; bottom:96px; transform:translate(-50%,14px); background:var(--ink); color:var(--bg); font-size:13px; padding:11px 18px; border-radius:22px; opacity:0; pointer-events:none; transition:all .3s; z-index:30; white-space:nowrap; max-width:88%}
+.toast.on{opacity:.95; transform:translate(-50%,0)}
+
+.legend{max-width:600px; text-align:center; font-size:12.5px; color:var(--ink-3); line-height:1.75; font-family:var(--mono)}
+.legend b{color:var(--ink-2); font-weight:400}
 </style>
 </head>
 <body>
-<div class="page">
 
-<div class="masthead">
-  <p class="eyebrow">Nomon · 可点击原型</p>
-  <h1>2 分钟自查：不打一个字，也能拿到结论</h1>
-  <p class="lede">这是「先给予、后索取」那套流程的可运行版本。左边解释每一屏在解决什么问题，右边直接点。分数是真算出来的，不是写死的假数据——改动滑条，结果会跟着变。</p>
+<div class="pageHead">
+  <p class="kicker">Nomon · 改进原型</p>
+  <h1>不用打一个字，也能拿到结论</h1>
+  <p>把入口从空文本框换成身体地图，五步全点选，第一次就给判断、分数和今天该做什么。下面是可以直接操作的完整 App。</p>
 </div>
 
-<div class="stage">
-  <div class="notes">
-    <p class="noteStep" id="noteStep">入口</p>
-    <h2 class="noteTitle" id="noteTitle"></h2>
-    <p class="noteBody" id="noteBody"></p>
-    <div class="mapping">
-      <span class="k">对应 Oura 的哪一层</span>
-      <span class="v" id="noteMap"></span>
+<div class="device" id="app">
+  <div class="notch"></div>
+  <div class="statusbar"><span>9:41</span><span class="r">●●● ᯤ 97</span></div>
+
+  <!-- ========== 今天 · 空状态 ========== -->
+  <section class="screen active" data-s="home">
+    <div class="appbar">
+      <div class="wordmark"><small>运动不适与恢复</small>Nomon</div>
+      <div class="avatar">H</div>
     </div>
-    <div class="progress" id="prog"></div>
+
+    <div class="hero">
+      <p class="eyebrow">2 分钟 · 全程点选</p>
+      <h2>哪里不舒服？</h2>
+      <p>点一下身体上的位置就行，不用打字、不用想怎么描述。</p>
+      <div class="mapBox">
+        <svg width="132" height="216" viewBox="0 0 90 150" role="img" aria-label="身体地图，可点选部位">
+          <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".4">
+            <circle cx="45" cy="14" r="9.5"/><path d="M45 24v7"/>
+            <path d="M29 40c0-5 7-8 16-8s16 3 16 8v27c0 7-2 12-3 17H32c-1-5-3-10-3-17z"/>
+            <path d="M29 42 17 63l-3 20"/><path d="M61 42l12 21 3 20"/>
+            <path d="M37 84l-2 30-1 24"/><path d="M53 84l2 30 1 24"/>
+          </g>
+          <g class="hot" data-part="肩" tabindex="0" role="button" aria-label="肩部"><circle class="halo" cx="61" cy="43" r="11"/><circle cx="61" cy="43" r="3" fill="currentColor" opacity=".55"/></g>
+          <g class="hot" data-part="腰" tabindex="0" role="button" aria-label="腰部"><circle class="halo" cx="45" cy="67" r="11"/><circle cx="45" cy="67" r="3" fill="currentColor" opacity=".35"/></g>
+          <g class="hot" data-part="膝" tabindex="0" role="button" aria-label="膝部"><circle class="halo" cx="35" cy="114" r="11"/><circle cx="35" cy="114" r="3" fill="currentColor" opacity=".35"/></g>
+          <g class="hot" data-part="踝" tabindex="0" role="button" aria-label="踝部"><circle class="halo" cx="55" cy="140" r="10"/><circle cx="55" cy="140" r="3" fill="currentColor" opacity=".35"/></g>
+        </svg>
+      </div>
+      <p class="hint">这个原型走通的是肩部</p>
+    </div>
+
+    <h3 class="sec">常见情况 <span>点一下直接开始</span></h3>
+    <div class="pillRow">
+      <button class="pill" data-quick="肩">举手时肩痛</button>
+      <button class="pill" data-quick="膝">跑步后膝痛</button>
+      <button class="pill" data-quick="腰">腰背酸胀</button>
+      <button class="pill" data-quick="踝">崴脚 / 扭伤</button>
+    </div>
+
+    <h3 class="sec">你会得到</h3>
+    <div class="getRow">
+      <div class="getCard"><div class="ic">!</div><div class="t">要不要就医</div><div class="s">先做安全分流</div></div>
+      <div class="getCard"><div class="ic">↗</div><div class="t">今天能不能练</div><div class="s">做什么、避开什么</div></div>
+      <div class="getCard"><div class="ic">7</div><div class="t">大概多久好</div><div class="s">给一条时间线</div></div>
+    </div>
+
+    <h3 class="sec">先了解身体 <span>不用记录也能读</span></h3>
+    <div class="card tap" data-article="rest" tabindex="0" role="button">
+      <div class="artRow"><span class="num">01</span><span class="txt">为什么「完全休息」经常反而拖慢恢复</span><span class="arw">›</span></div>
+    </div>
+    <div class="card tap" data-article="rom" tabindex="0" role="button">
+      <div class="artRow"><span class="num">02</span><span class="txt">活动度为什么比疼痛更能反映恢复</span><span class="arw">›</span></div>
+    </div>
+    <div class="grow"></div>
+  </section>
+
+  <!-- ========== Q1 部位 ========== -->
+  <section class="screen noNav" data-s="q1">
+    <div class="backbar"><button class="backBtn" data-go="home">‹</button><span class="stepLabel">评估 1 / 5 · 右肩</span></div>
+    <div class="prog"><i style="width:20%"></i></div>
+    <h2 class="scrH">具体是肩膀的哪一侧？</h2>
+    <p class="scrP">用另一只手摸一下最痛的点，选最接近的一个。</p>
+    <div class="opts" id="g-side">
+      <button class="opt" data-v="外侧">肩膀外侧<span class="sm">举手时最明显 · 常见于肩袖</span></button>
+      <button class="opt" data-v="前侧">肩膀前方<span class="sm">推东西时明显 · 常见于肱二头肌长头腱</span></button>
+      <button class="opt" data-v="后上">肩胛骨附近<span class="sm">酸胀为主 · 常见于姿势相关</span></button>
+      <button class="opt" data-v="说不清">说不清，整片都不舒服</button>
+    </div>
+    <div class="grow"></div>
+    <div class="foot"><button class="btn" data-next="q2" disabled>下一步</button></div>
+  </section>
+
+  <!-- ========== Q2 起病 ========== -->
+  <section class="screen noNav" data-s="q2">
+    <div class="backbar"><button class="backBtn" data-go="q1">‹</button><span class="stepLabel">评估 2 / 5 · 右肩</span></div>
+    <div class="prog"><i style="width:40%"></i></div>
+    <h2 class="scrH">它是怎么开始的？</h2>
+    <p class="scrP">这一步决定后面所有建议的方向——急性和慢性是两套完全不同的处理。</p>
+    <div class="opts" id="g-onset">
+      <button class="opt" data-v="今天">就今天<span class="sm">急性期</span></button>
+      <button class="opt" data-v="这周">这周之内<span class="sm">急性期</span></button>
+      <button class="opt" data-v="一月内">一个月内<span class="sm">亚急性</span></button>
+      <button class="opt" data-v="更久">更久了，反反复复<span class="sm">慢性</span></button>
+    </div>
+    <div class="grow"></div>
+    <div class="foot"><button class="btn" data-next="q3" disabled>下一步</button></div>
+  </section>
+
+  <!-- ========== Q3 诱因 ========== -->
+  <section class="screen noNav" data-s="q3">
+    <div class="backbar"><button class="backBtn" data-go="q2">‹</button><span class="stepLabel">评估 3 / 5 · 右肩</span></div>
+    <div class="prog"><i style="width:60%"></i></div>
+    <h2 class="scrH">大概是怎么弄的？</h2>
+    <p class="scrP">想不起来很正常，「说不清」是个正经选项。</p>
+    <div class="opts" id="g-cause">
+      <button class="opt" data-v="举重物">举重物 / 过顶推举</button>
+      <button class="opt" data-v="球类">打球时突然一下</button>
+      <button class="opt" data-v="跑量">最近训练量加得比较猛</button>
+      <button class="opt" data-v="睡姿">睡醒就这样了</button>
+      <button class="opt" data-v="说不清">说不清</button>
+    </div>
+    <div class="grow"></div>
+    <div class="foot"><button class="btn" data-next="q4" disabled>下一步</button></div>
+  </section>
+
+  <!-- ========== Q4 动作测试 ========== -->
+  <section class="screen noNav" data-s="q4">
+    <div class="backbar"><button class="backBtn" data-go="q3">‹</button><span class="stepLabel">评估 4 / 5 · 右肩</span></div>
+    <div class="prog"><i style="width:80%"></i></div>
+    <h2 class="scrH">做两个动作，告诉我感觉</h2>
+    <p class="scrP">慢慢来，痛到不行就停。以后每次复测都做同样这两个，数字才有可比性。</p>
+
+    <div class="test">
+      <h4>动作一 · 手臂从体侧举过头顶</h4>
+      <p class="d">拇指朝上，画一个半圆。</p>
+      <div class="slabel"><span>疼痛　0 不痛 → 10 剧痛</span><b id="p1v">3</b></div>
+      <input type="range" id="p1" min="0" max="10" value="3" aria-label="动作一疼痛评分">
+      <div class="slabel"><span>能举到哪</span></div>
+      <div class="rom" data-rom="r1">
+        <button class="pill" data-v="2" aria-pressed="true">能过头</button>
+        <button class="pill" data-v="1" aria-pressed="false">只到肩</button>
+        <button class="pill" data-v="0" aria-pressed="false">举不起来</button>
+      </div>
+    </div>
+
+    <div class="test">
+      <h4>动作二 · 手背贴腰，往上够背后</h4>
+      <p class="d">像要摸自己肩胛骨那样。</p>
+      <div class="slabel"><span>疼痛　0 不痛 → 10 剧痛</span><b id="p2v">4</b></div>
+      <input type="range" id="p2" min="0" max="10" value="4" aria-label="动作二疼痛评分">
+      <div class="slabel"><span>能够到哪</span></div>
+      <div class="rom" data-rom="r2">
+        <button class="pill" data-v="2" aria-pressed="false">到腰以上</button>
+        <button class="pill" data-v="1" aria-pressed="true">只到臀部</button>
+        <button class="pill" data-v="0" aria-pressed="false">够不到背后</button>
+      </div>
+    </div>
+
+    <div class="test">
+      <h4>这几件事受影响吗</h4>
+      <p class="d">选中 = 受影响。没有就都不选。</p>
+      <div class="pillRow" id="g-impact">
+        <button class="pill" data-v="穿衣" aria-pressed="true">穿脱衣服费劲</button>
+        <button class="pill" data-v="提物" aria-pressed="false">提东西吃力</button>
+        <button class="pill" data-v="睡眠" aria-pressed="false">影响睡觉</button>
+      </div>
+    </div>
+
+    <div class="foot"><button class="btn" data-next="q5">下一步</button></div>
+  </section>
+
+  <!-- ========== Q5 红旗 ========== -->
+  <section class="screen noNav" data-s="q5">
+    <div class="backbar"><button class="backBtn" data-go="q4">‹</button><span class="stepLabel">评估 5 / 5 · 安全确认</span></div>
+    <div class="prog"><i style="width:100%"></i></div>
+    <h2 class="scrH">最后确认几件事</h2>
+    <p class="scrP">有任意一条，我就不给自我处理建议了——这几种情况需要当面看。</p>
+    <div class="opts" id="g-flags">
+      <button class="opt flag" data-v="麻木">手臂或手指发麻</button>
+      <button class="opt flag" data-v="无力">明显使不上劲，端不起杯子</button>
+      <button class="opt flag" data-v="变形">肩膀外观变形、鼓包或凹陷</button>
+      <button class="opt flag" data-v="夜痛">夜里会被痛醒</button>
+      <button class="opt flag" data-v="发烧">发烧，或局部又红又烫</button>
+    </div>
+    <div class="grow"></div>
+    <div class="foot"><button class="btn" id="toResult">以上都没有，看结果</button></div>
+  </section>
+
+  <!-- ========== 转诊 ========== -->
+  <section class="screen noNav" data-s="refer">
+    <div class="backbar"><button class="backBtn" data-go="q5">‹</button><span class="stepLabel">评估结果 · 右肩</span></div>
+    <div class="referTop">
+      <span class="tier">建议线下评估</span>
+      <h3>这个情况我不该替你判断</h3>
+      <p>你勾选的这些属于需要专业评估的信号：</p>
+      <ul id="flagEcho" style="margin:11px 0 0; padding-left:18px"></ul>
+    </div>
+    <div class="card">
+      <span class="k">但你不会空手走</span>
+      <span class="v">刚才那几步已经整理成一份可以直接带去就诊的记录——什么时候开始的、哪个动作痛、能举多高。医生要问的正是这几件事。</span>
+    </div>
+    <div class="grow"></div>
+    <div class="foot">
+      <button class="btn" id="exportBtn">导出这份自查记录</button>
+      <button class="btn ghost" data-go="q5">返回改一下</button>
+    </div>
+  </section>
+
+  <!-- ========== 结果 ========== -->
+  <section class="screen noNav" data-s="result">
+    <div class="backbar"><button class="backBtn" data-go="q5">‹</button><span class="stepLabel" id="resStep">评估结果 · 右肩</span></div>
+
+    <div class="verdict">
+      <span class="tier">可以先自我管理</span>
+      <h3 id="vLead"></h3>
+      <p id="vWhy"></p>
+      <button class="whyBtn" id="whyBtn">为什么这么判断？</button>
+      <div class="whyBox" id="whyBox"></div>
+    </div>
+
+    <div class="scoreCard">
+      <div class="ringWrap">
+        <div class="ring">
+          <svg width="92" height="92" viewBox="0 0 92 92">
+            <circle cx="46" cy="46" r="40" fill="none" stroke="var(--sunk)" stroke-width="7"/>
+            <circle id="ringArc" cx="46" cy="46" r="40" fill="none" stroke="var(--green)" stroke-width="7"
+              stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3"
+              style="transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.3,1)"/>
+          </svg>
+          <span class="num" id="scoreNum">0</span>
+        </div>
+        <div class="ringMeta">
+          <span class="lbl">恢复分数</span>
+          <div class="st" id="scoreSt"></div>
+          <div class="dt" id="scoreDt"></div>
+        </div>
+      </div>
+      <div class="contrib">
+        <div class="cRow"><span>疼痛强度</span><span class="track"><span class="fill" id="f1"></span></span><span class="val" id="v1"></span></div>
+        <div class="cRow"><span>活动度</span><span class="track"><span class="fill" id="f2"></span></span><span class="val" id="v2"></span></div>
+        <div class="cRow"><span>日常影响</span><span class="track"><span class="fill" id="f3"></span></span><span class="val" id="v3"></span></div>
+        <div class="cRow muted" id="row4"><span>变化趋势</span><span class="track"><span class="fill" id="f4"></span></span><span class="val" id="v4">待复测</span></div>
+      </div>
+    </div>
+
+    <div class="card todo">
+      <span class="k">今天就这三件事</span>
+      <ul>
+        <li class="do"><span class="m">✓</span><span id="tDo"></span></li>
+        <li class="no"><span class="m">✕</span><span id="tNo"></span></li>
+        <li class="wa"><span class="m">◎</span><span id="tWa"></span></li>
+      </ul>
+    </div>
+
+    <div class="tl" id="tl"></div>
+    <p class="disc">Nomon 给的是基于你自述的可能性判断和恢复建议，不是医学诊断。症状加重或持续不缓解，请找专业人士当面评估。</p>
+
+    <div class="foot"><button class="btn green" id="mkPlan">建立 7 天恢复计划</button></div>
+  </section>
+
+  <!-- ========== 今天 · 有数据 ========== -->
+  <section class="screen" data-s="today">
+    <div class="appbar">
+      <div class="wordmark"><small>运动不适与恢复</small>Nomon</div>
+      <div class="avatar">H</div>
+    </div>
+    <div class="statusRow"><span class="dot warn" id="tdDot"></span><span class="t" id="tdTitle">右肩 · 恢复中</span><span class="s" id="tdDay">第 1 天</span></div>
+
+    <div class="hero" style="padding-bottom:18px">
+      <p class="eyebrow">今天的恢复分数</p>
+      <div style="display:flex; align-items:baseline; gap:10px">
+        <span style="font-family:var(--mono); font-size:40px; font-weight:600; line-height:1; font-variant-numeric:tabular-nums" id="tdScore">--</span>
+        <span style="font-size:12px; opacity:.7" id="tdDelta"></span>
+      </div>
+      <p style="margin-top:9px" id="tdCap"></p>
+    </div>
+
+    <h3 class="sec">今天要做 <span id="tdCount">0 / 3</span></h3>
+    <div id="tdTasks"></div>
+
+    <h3 class="sec">与你相关</h3>
+    <div class="card tap" data-article="rest" tabindex="0" role="button">
+      <div class="artRow"><span class="num">01</span><span class="txt">为什么「完全休息」经常反而拖慢恢复</span><span class="arw">›</span></div>
+    </div>
+    <div class="card tap" data-article="rom" tabindex="0" role="button">
+      <div class="artRow"><span class="num">02</span><span class="txt">活动度为什么比疼痛更能反映恢复</span><span class="arw">›</span></div>
+    </div>
+    <div class="grow"></div>
+  </section>
+
+  <!-- ========== 我的肩 ========== -->
+  <section class="screen" data-s="part">
+    <div class="appbar"><div class="wordmark"><small>部位档案</small>右肩</div><div class="avatar">H</div></div>
+
+    <h3 class="sec">现在在哪个阶段</h3>
+    <div class="stages" id="stages">
+      <div class="stage on"><span class="bar"></span>急性期<br>控制刺激</div>
+      <div class="stage"><span class="bar"></span>恢复期<br>找回活动度</div>
+      <div class="stage"><span class="bar"></span>重返运动<br>加回负荷</div>
+    </div>
+    <p class="scrP" id="stageNote" style="margin-bottom:18px">这个阶段的目标不是练，是别让它更烦——把日常动作范围维持住。</p>
+
+    <div class="chart">
+      <div class="chartTop"><span class="n">恢复分数</span><span class="c" id="curveDelta">首次评估</span></div>
+      <svg class="spark" id="curve" viewBox="0 0 300 64" preserveAspectRatio="none" role="img" aria-label="恢复分数趋势"></svg>
+      <div class="xax"><span id="xa1">今天</span><span id="xa2"></span><span id="xa3"></span></div>
+    </div>
+
+    <h3 class="sec">影响因素 <span>最近一次</span></h3>
+    <div class="card">
+      <div class="contrib" style="border:0; padding:0">
+        <div class="cRow"><span>疼痛强度</span><span class="track"><span class="fill" id="pf1"></span></span><span class="val" id="pv1"></span></div>
+        <div class="cRow"><span>活动度</span><span class="track"><span class="fill" id="pf2"></span></span><span class="val" id="pv2"></span></div>
+        <div class="cRow"><span>日常影响</span><span class="track"><span class="fill" id="pf3"></span></span><span class="val" id="pv3"></span></div>
+      </div>
+    </div>
+
+    <h3 class="sec">时间线</h3>
+    <div class="card"><span class="k" id="ev1k">今天</span><span class="v">完成首次评估 · 举重物后起病，病程这周之内</span></div>
+    <div class="card" id="ev2" style="display:none"><span class="k">第 7 天</span><span class="v">完成复测 · 活动度改善，疼痛下降</span></div>
+
+    <div class="foot"><button class="btn green" id="reBtn">现在复测一次</button></div>
+  </section>
+
+  <!-- ========== 洞察 ========== -->
+  <section class="screen" data-s="insights">
+    <div class="appbar"><div class="wordmark"><small>洞察与知识</small>Insights</div><div class="avatar">H</div></div>
+
+    <h3 class="sec">你的规律 <span id="insCount">需要更多记录</span></h3>
+    <div id="insList"></div>
+
+    <h3 class="sec">知识库 <span>随时可读</span></h3>
+    <div class="card tap" data-article="pain" tabindex="0" role="button"><div class="artRow"><span class="num">01</span><span class="txt">疼痛 ≠ 损伤：疼痛评分该怎么用</span><span class="arw">›</span></div></div>
+    <div class="card tap" data-article="peace" tabindex="0" role="button"><div class="artRow"><span class="num">02</span><span class="txt">急性期 48 小时：PEACE &amp; LOVE</span><span class="arw">›</span></div></div>
+    <div class="card tap" data-article="rest" tabindex="0" role="button"><div class="artRow"><span class="num">03</span><span class="txt">为什么「完全休息」经常拖慢恢复</span><span class="arw">›</span></div></div>
+    <div class="card tap" data-article="rom" tabindex="0" role="button"><div class="artRow"><span class="num">04</span><span class="txt">活动度为什么比疼痛更能反映恢复</span><span class="arw">›</span></div></div>
+    <div class="card tap" data-article="red" tabindex="0" role="button"><div class="artRow"><span class="num">05</span><span class="txt">六种红旗信号：出现就别自己处理</span><span class="arw">›</span></div></div>
+    <div class="card tap" data-article="line" tabindex="0" role="button"><div class="artRow"><span class="num">06</span><span class="txt">恢复不是直线：平台期和小反复都正常</span><span class="arw">›</span></div></div>
+    <div class="grow"></div>
+  </section>
+
+  <!-- ========== 计划 ========== -->
+  <section class="screen" data-s="plan">
+    <div class="appbar"><div class="wordmark"><small>7 天恢复计划</small>右肩</div><div class="avatar">H</div></div>
+    <div class="cal" id="cal"></div>
+    <div class="taskRing">
+      <div class="ring">
+        <svg width="66" height="66" viewBox="0 0 66 66" style="transform:rotate(-90deg)">
+          <circle cx="33" cy="33" r="28" fill="none" stroke="var(--sunk)" stroke-width="6"/>
+          <circle id="taskArc" cx="33" cy="33" r="28" fill="none" stroke="var(--green)" stroke-width="6"
+            stroke-linecap="round" stroke-dasharray="175.9" stroke-dashoffset="175.9"
+            style="transition:stroke-dashoffset .5s cubic-bezier(.2,.8,.3,1)"/>
+        </svg>
+        <span class="num" id="taskNum">0</span>
+      </div>
+      <div class="ringMeta">
+        <span class="lbl">今天的完成度</span>
+        <div class="st" id="taskSt">还没开始</div>
+        <div class="dt">做完就点一下，明天的计划会根据完成情况调整。</div>
+      </div>
+    </div>
+    <h3 class="sec">今天的动作</h3>
+    <div id="planTasks"></div>
+    <div class="card" style="border-style:dashed; background:transparent">
+      <span class="k">第 7 天</span>
+      <span class="v">复测这两个动作。有改善就进入下一阶段，没有改善说明假设要修正——那时我会换个方向问你。</span>
+    </div>
+    <div class="grow"></div>
+  </section>
+
+  <!-- ========== 文章 ========== -->
+  <section class="screen noNav" data-s="article">
+    <div class="backbar"><button class="backBtn" id="artBack">‹</button><span class="stepLabel">知识卡 · 30 秒</span></div>
+    <div class="artHead"><p class="k" id="artK"></p><h2 id="artT"></h2></div>
+    <div class="artBody" id="artB"></div>
+    <div class="artCall" id="artC"></div>
+    <div class="grow"></div>
+    <div class="foot"><button class="btn ghost" id="artBack2">读完了</button></div>
+  </section>
+
+  <!-- ========== nav ========== -->
+  <nav class="nav" id="nav">
+    <button class="navItem on" data-nav="home"><span class="ic">☀</span><span class="lb">今天</span></button>
+    <button class="navItem" data-nav="part"><span class="ic">◉</span><span class="lb">我的肩</span></button>
+    <button class="navItem" data-nav="insights"><span class="ic">✦</span><span class="lb">洞察</span></button>
+    <button class="navItem" data-nav="plan"><span class="ic">▤</span><span class="lb">计划</span></button>
+  </nav>
+
+  <!-- ========== sheet ========== -->
+  <div class="backdrop" id="bd"></div>
+  <div class="sheet" id="sheet">
+    <div class="grip"></div>
+    <h2 class="scrH" style="font-size:21px">复测：还是这两个动作</h2>
+    <p class="scrP">同样的动作、同样的问法，数字才可比。</p>
+    <div class="test" style="margin-bottom:10px">
+      <h4>动作一 · 举过头顶</h4>
+      <div class="slabel"><span>今天疼几分</span><b id="r1v">2</b></div>
+      <input type="range" id="rp1" min="0" max="10" value="2" aria-label="复测动作一疼痛">
+      <div class="slabel"><span>能举到哪</span></div>
+      <div class="rom" data-rom="rr1">
+        <button class="pill" data-v="2" aria-pressed="true">能过头</button>
+        <button class="pill" data-v="1" aria-pressed="false">只到肩</button>
+        <button class="pill" data-v="0" aria-pressed="false">举不起来</button>
+      </div>
+    </div>
+    <div class="test">
+      <h4>动作二 · 够背后</h4>
+      <div class="slabel"><span>今天疼几分</span><b id="r2v">3</b></div>
+      <input type="range" id="rp2" min="0" max="10" value="3" aria-label="复测动作二疼痛">
+      <div class="slabel"><span>能够到哪</span></div>
+      <div class="rom" data-rom="rr2">
+        <button class="pill" data-v="2" aria-pressed="true">到腰以上</button>
+        <button class="pill" data-v="1" aria-pressed="false">只到臀部</button>
+        <button class="pill" data-v="0" aria-pressed="false">够不到</button>
+      </div>
+    </div>
+    <div style="display:grid; gap:8px; margin-top:16px">
+      <button class="btn green" id="saveRe">保存复测</button>
+      <button class="btn ghost" id="closeSheet">取消</button>
+    </div>
   </div>
 
-  <div class="deviceCol">
-    <div class="device">
-      <div class="toast" id="toast"></div>
-
-      <!-- 1. 空状态首页 -->
-      <div class="screen active" data-s="home">
-        <div class="bar"><span>16:32</span><span>TUE · AUG 18</span></div>
-        <h2 class="scrTitle">哪里不舒服？</h2>
-        <p class="scrHint">点一下身体上的位置就行，不用打字。</p>
-        <div class="mapWrap">
-          <svg width="150" height="250" viewBox="0 0 90 150" role="img" aria-label="身体地图，可点选部位">
-            <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".45">
-              <circle cx="45" cy="14" r="9.5"/><path d="M45 24v7"/>
-              <path d="M29 40c0-5 7-8 16-8s16 3 16 8v27c0 7-2 12-3 17H32c-1-5-3-10-3-17z"/>
-              <path d="M29 42 17 63l-3 20"/><path d="M61 42l12 21 3 20"/>
-              <path d="M37 84l-2 30-1 24"/><path d="M53 84l2 30 1 24"/>
-            </g>
-            <g class="hot" data-part="肩" tabindex="0" role="button" aria-label="肩部">
-              <circle class="halo" cx="61" cy="43" r="10"/><circle cx="61" cy="43" r="6" fill="transparent"/>
-              <circle cx="61" cy="43" r="2.6" fill="currentColor" opacity=".3"/>
-            </g>
-            <g class="hot" data-part="腰" tabindex="0" role="button" aria-label="腰部">
-              <circle class="halo" cx="45" cy="66" r="10"/><circle cx="45" cy="66" r="6" fill="transparent"/>
-              <circle cx="45" cy="66" r="2.6" fill="currentColor" opacity=".3"/>
-            </g>
-            <g class="hot" data-part="膝" tabindex="0" role="button" aria-label="膝部">
-              <circle class="halo" cx="35" cy="114" r="10"/><circle cx="35" cy="114" r="6" fill="transparent"/>
-              <circle cx="35" cy="114" r="2.6" fill="currentColor" opacity=".3"/>
-            </g>
-            <g class="hot" data-part="踝" tabindex="0" role="button" aria-label="踝部">
-              <circle class="halo" cx="55" cy="140" r="9"/><circle cx="55" cy="140" r="6" fill="transparent"/>
-              <circle cx="55" cy="140" r="2.6" fill="currentColor" opacity=".3"/>
-            </g>
-          </svg>
-          <p style="font-size:12.5px;color:var(--ink-3);margin:0;">这个原型走通的是<b style="color:var(--accent)">肩部</b>路径</p>
-        </div>
-        <div class="foot">
-          <button class="btn ghost" data-go="lib">暂时没有，先看看知识库</button>
-        </div>
-        <div class="tabbar"><span class="on">Today</span><span>我的部位</span><span>Insights</span><span>计划</span></div>
-      </div>
-
-      <!-- 2. 部位细分 -->
-      <div class="screen" data-s="part">
-        <div class="bar"><span>自查 1 / 5</span><span>右肩</span></div>
-        <h2 class="scrTitle">具体是肩膀的哪一侧？</h2>
-        <p class="scrHint">拿另一只手摸一下最痛的点，选最接近的。</p>
-        <div class="opts grow" id="optPart">
-          <button class="opt" data-v="外侧">肩膀外侧<span class="sm">举手时最明显，常见于肩袖问题</span></button>
-          <button class="opt" data-v="前侧">肩膀前方<span class="sm">推东西时明显，常见于肱二头肌长头腱</span></button>
-          <button class="opt" data-v="后上方">肩胛骨附近<span class="sm">酸胀为主，常见于姿势相关</span></button>
-          <button class="opt" data-v="说不清">说不清，整片都不舒服</button>
-        </div>
-        <div class="foot"><button class="btn" data-next="onset" disabled>下一步</button><button class="btn ghost" data-go="home">返回</button></div>
-      </div>
-
-      <!-- 3. 起病时间 -->
-      <div class="screen" data-s="onset">
-        <div class="bar"><span>自查 2 / 5</span><span>右肩</span></div>
-        <h2 class="scrTitle">什么时候开始的？</h2>
-        <p class="scrHint">这一步决定后面所有建议的方向——急性和慢性完全是两套处理。</p>
-        <div class="opts grow" id="optOnset">
-          <button class="opt" data-v="今天">就今天<span class="sm">急性期</span></button>
-          <button class="opt" data-v="这周">这周之内<span class="sm">急性期</span></button>
-          <button class="opt" data-v="一个月内">一个月内<span class="sm">亚急性</span></button>
-          <button class="opt" data-v="更久">更久了，反反复复<span class="sm">慢性</span></button>
-        </div>
-        <div class="foot"><button class="btn" data-next="cause" disabled>下一步</button><button class="btn ghost" data-back="part">返回</button></div>
-      </div>
-
-      <!-- 4. 诱因 -->
-      <div class="screen" data-s="cause">
-        <div class="bar"><span>自查 3 / 5</span><span>右肩</span></div>
-        <h2 class="scrTitle">大概是怎么弄的？</h2>
-        <p class="scrHint">想不起来很正常，「说不清」是个正经选项。</p>
-        <div class="opts grow" id="optCause">
-          <button class="opt" data-v="举重物">举重物 / 过顶推举</button>
-          <button class="opt" data-v="球类">打球时突然一下</button>
-          <button class="opt" data-v="跑量">最近训练量加得比较猛</button>
-          <button class="opt" data-v="睡姿">睡醒就这样了</button>
-          <button class="opt" data-v="说不清">说不清</button>
-        </div>
-        <div class="foot"><button class="btn" data-next="test" disabled>下一步</button><button class="btn ghost" data-back="onset">返回</button></div>
-      </div>
-
-      <!-- 5. 动作测试 -->
-      <div class="screen" data-s="test">
-        <div class="bar"><span>自查 4 / 5</span><span>右肩</span></div>
-        <h2 class="scrTitle">做两个动作，告诉我感觉</h2>
-        <p class="scrHint">慢慢来，痛到不行就停下。这两个动作以后每次复测都做同样的，才能比较。</p>
-
-        <div class="testBlock">
-          <h4>动作一 · 手臂从体侧慢慢举过头顶</h4>
-          <p class="desc">拇指朝上，画一个半圆。</p>
-          <div class="slabel"><span>疼痛 0 = 不痛　10 = 剧痛</span><b id="p1v">3</b></div>
-          <input type="range" id="p1" min="0" max="10" value="3" aria-label="动作一疼痛评分">
-          <div class="slabel"><span>能举到哪</span></div>
-          <div class="romRow" data-rom="r1">
-            <button class="chip" data-v="2" aria-pressed="true">能过头</button>
-            <button class="chip" data-v="1" aria-pressed="false">只到肩</button>
-            <button class="chip" data-v="0" aria-pressed="false">举不起来</button>
-          </div>
-        </div>
-
-        <div class="testBlock">
-          <h4>动作二 · 手背贴腰，往上够背后</h4>
-          <p class="desc">像要摸自己的肩胛骨那样。</p>
-          <div class="slabel"><span>疼痛 0 = 不痛　10 = 剧痛</span><b id="p2v">4</b></div>
-          <input type="range" id="p2" min="0" max="10" value="4" aria-label="动作二疼痛评分">
-          <div class="slabel"><span>能够到哪</span></div>
-          <div class="romRow" data-rom="r2">
-            <button class="chip" data-v="2" aria-pressed="false">到腰以上</button>
-            <button class="chip" data-v="1" aria-pressed="true">只到臀部</button>
-            <button class="chip" data-v="0" aria-pressed="false">够不到背后</button>
-          </div>
-        </div>
-
-        <div class="testBlock">
-          <h4>这几件事受影响吗</h4>
-          <p class="desc">选中 = 受影响。没有就都不选。</p>
-          <div class="chips" id="impact">
-            <button class="chip" data-v="穿衣" aria-pressed="true">穿脱衣服费劲</button>
-            <button class="chip" data-v="提物" aria-pressed="false">提东西吃力</button>
-            <button class="chip" data-v="睡眠" aria-pressed="false">影响睡觉</button>
-          </div>
-        </div>
-
-        <div class="foot"><button class="btn" data-next="flags">下一步</button><button class="btn ghost" data-back="cause">返回</button></div>
-      </div>
-
-      <!-- 6. 红旗 -->
-      <div class="screen" data-s="flags">
-        <div class="bar"><span>自查 5 / 5</span><span>右肩</span></div>
-        <h2 class="scrTitle">最后确认几件事</h2>
-        <p class="scrHint">有任意一条，我就不给自我处理建议了——这几种情况需要当面看。</p>
-        <div class="opts grow" id="optFlags">
-          <button class="opt" data-v="麻木">手臂或手指发麻</button>
-          <button class="opt" data-v="无力">明显使不上劲，端不起杯子</button>
-          <button class="opt" data-v="变形">肩膀外观变形、鼓包或凹陷</button>
-          <button class="opt" data-v="夜痛">夜里会被痛醒</button>
-          <button class="opt" data-v="发烧">发烧，或局部又红又烫</button>
-        </div>
-        <div class="foot">
-          <button class="btn" data-next="result">以上都没有，看结果</button>
-          <button class="btn ghost" data-back="test">返回</button>
-        </div>
-      </div>
-
-      <!-- 7. 转诊 -->
-      <div class="screen" data-s="refer">
-        <div class="bar"><span>结果</span><span>右肩</span></div>
-        <div class="referIcon"></div>
-        <h2 class="scrTitle">这个情况建议当面看一下</h2>
-        <p class="scrHint">你勾选的这些属于需要专业评估的信号，我不该在这里替你判断。</p>
-        <div class="flagList"><ul id="flagEcho" style="margin:0;padding-left:18px;"></ul></div>
-        <p style="font-size:14px;color:var(--ink-2);line-height:1.65;">带上你刚才的记录去就诊会更省事——什么时候开始的、做哪个动作痛、能举多高，医生问的就是这些。</p>
-        <div class="grow"></div>
-        <div class="foot">
-          <button class="btn">导出这份自查记录</button>
-          <button class="btn ghost" data-back="flags">返回改一下</button>
-        </div>
-      </div>
-
-      <!-- 8. 结果 -->
-      <div class="screen" data-s="result">
-        <div class="bar"><span id="resDay">今天 · 首次评估</span><span>右肩</span></div>
-
-        <div class="verdict">
-          <p class="lead" id="verdictLead"></p>
-          <p class="why" id="verdictWhy"></p>
-        </div>
-
-        <div class="scoreCard">
-          <div class="scoreTop">
-            <span class="scoreBig" id="scoreBig">--</span><span class="scoreOf">/ 100 恢复分数</span>
-            <span class="scoreDelta" id="scoreDelta"></span>
-          </div>
-          <p class="scoreCap" id="scoreCap"></p>
-          <div class="contrib">
-            <div class="cRow"><span>疼痛强度</span><span class="track"><span class="fill" id="f1"></span></span><span class="val" id="v1"></span></div>
-            <div class="cRow"><span>活动度</span><span class="track"><span class="fill" id="f2"></span></span><span class="val" id="v2"></span></div>
-            <div class="cRow"><span>日常影响</span><span class="track"><span class="fill" id="f3"></span></span><span class="val" id="v3"></span></div>
-            <div class="cRow muted" id="row4"><span>变化趋势</span><span class="track"><span class="fill" id="f4"></span></span><span class="val" id="v4">待复测</span></div>
-          </div>
-          <svg class="spark" id="spark" width="100%" height="34" viewBox="0 0 300 34" preserveAspectRatio="none" style="display:none">
-            <polyline id="sparkLine" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" points=""/>
-            <circle id="sparkDot" r="3.2" fill="var(--accent)"/>
-          </svg>
-        </div>
-
-        <div class="todo">
-          <span class="k">今天就这三件事</span>
-          <ul>
-            <li class="do"><span class="m">✓</span><span id="todoDo"></span></li>
-            <li class="no"><span class="m">✕</span><span id="todoNo"></span></li>
-            <li class="watch"><span class="m">◎</span><span id="todoWatch"></span></li>
-          </ul>
-        </div>
-
-        <div class="timeline" id="timeline"></div>
-        <p class="disclaim">Nomon 提供的是基于你自述的可能性判断和恢复建议，不是医学诊断。症状加重或持续不缓解，请找专业人士当面评估。</p>
-
-        <div class="foot">
-          <button class="btn" id="btnDay7">模拟 7 天后复测 →</button>
-          <button class="btn ghost" data-go="filled">看看首页现在长什么样</button>
-          <button class="btn ghost" data-go="home" id="btnRestart">重来一次</button>
-        </div>
-      </div>
-
-      <!-- 9. 有数据的首页 -->
-      <div class="screen" data-s="filled">
-        <div class="bar"><span>16:32</span><span>TUE · AUG 18</span></div>
-        <div style="display:flex;justify-content:center;margin-bottom:12px;">
-          <svg width="82" height="136" viewBox="0 0 90 150" role="img" aria-label="身体地图，右肩标为恢复中">
-            <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".4">
-              <circle cx="45" cy="14" r="9.5"/><path d="M45 24v7"/>
-              <path d="M29 40c0-5 7-8 16-8s16 3 16 8v27c0 7-2 12-3 17H32c-1-5-3-10-3-17z"/>
-              <path d="M29 42 17 63l-3 20"/><path d="M61 42l12 21 3 20"/>
-              <path d="M37 84l-2 30-1 24"/><path d="M53 84l2 30 1 24"/>
-            </g>
-            <circle cx="61" cy="43" r="9" fill="var(--warn)" opacity=".2"/>
-            <circle cx="61" cy="43" r="3.6" fill="var(--warn)"/>
-          </svg>
-        </div>
-        <div class="homeCard accent">
-          <span class="k">右肩 · 恢复中</span>
-          <div style="display:flex;align-items:baseline;gap:9px;">
-            <span style="font-family:var(--mono);font-size:32px;font-weight:600;color:var(--accent);line-height:1;font-variant-numeric:tabular-nums;" id="homeScore">--</span>
-            <span style="font-family:var(--mono);font-size:11.5px;color:var(--ok);" id="homeDelta"></span>
-          </div>
-          <span class="v" style="display:block;margin-top:7px;" id="homeCap"></span>
-        </div>
-        <div class="homeCard"><span class="k">今天</span><span class="v" id="homeTodo"></span></div>
-        <div class="homeCard"><span class="k">读一读 · 30 秒</span><span class="v">为什么「完全休息」经常反而拖慢恢复</span></div>
-        <div class="homeCard"><span class="k">读一读 · 30 秒</span><span class="v">活动度为什么比疼痛更能反映恢复进度</span></div>
-        <div class="grow"></div>
-        <div class="foot"><button class="btn ghost" data-go="result">返回结果页</button></div>
-        <div class="tabbar"><span class="on">Today</span><span>我的部位</span><span>Insights</span><span>计划</span></div>
-      </div>
-
-      <!-- 10. 知识库 -->
-      <div class="screen" data-s="lib">
-        <div class="bar"><span>Insights</span><span>知识库</span></div>
-        <h2 class="scrTitle">在你还没有任何数据的时候</h2>
-        <p class="scrHint">这一页永远不空。它的作用是告诉你：这个 app 到底懂什么。</p>
-        <div class="opts grow">
-          <button class="opt">疼痛 ≠ 损伤<span class="sm">疼痛评分该怎么用</span></button>
-          <button class="opt">急性期 48 小时该做什么<span class="sm">PEACE &amp; LOVE，RICE 已经过时了</span></button>
-          <button class="opt">什么叫「可接受的疼痛」<span class="sm">0–3 分原则</span></button>
-          <button class="opt">为什么「完全休息」经常拖慢恢复<span class="sm">负荷管理</span></button>
-          <button class="opt">六种红旗信号<span class="sm">出现就别自己处理</span></button>
-          <button class="opt">恢复不是直线<span class="sm">平台期和小反复都正常</span></button>
-        </div>
-        <div class="foot"><button class="btn ghost" data-go="home">返回首页</button></div>
-        <div class="tabbar"><span>Today</span><span>我的部位</span><span class="on">Insights</span><span>计划</span></div>
-      </div>
-
-    </div>
-
-    <div class="controls">
-      <button class="ctlBtn" data-go="home">↺ 从头开始</button>
-      <button class="ctlBtn" data-go="lib">知识库</button>
-    </div>
-  </div>
+  <div class="toast" id="toast"></div>
 </div>
 
-<div class="footer">
-  Nomon 交互原型 v1.0 · 2026-08-18<br>
-  配套文档：Nomon 改进设计方案（对标 Oura App）<br>
-  分数由页面上的输入实时计算，非预设数据。原型仅为设计演示，不构成医学建议。
-</div>
-
-</div>
+<p class="legend">
+  <b>试试看：</b>点身体地图上的肩 → 走完五步 → 结果页<br>
+  第五步勾一条红旗 · 结果页点「为什么这么判断」· 计划页勾任务 · 我的肩页点「现在复测一次」
+</p>
 
 <script>
 (function(){
-  var S = {part:null, onset:null, cause:null, flags:[], p1:3, p2:4, r1:2, r2:1, impact:['穿衣'], day:1, prev:null};
+var $=s=>document.querySelector(s), $$=s=>[].slice.call(document.querySelectorAll(s));
+var NAV_SCREENS=['home','today','part','insights','plan'];
+var S={side:null,onset:null,cause:null,flags:[],p1:3,p2:4,r1:2,r2:1,impact:['穿衣'],
+       assessed:false,day:1,history:[],tasks:[false,false,false],planMade:false};
 
-  var NOTES = {
-    home:{step:'入口 · 替代空文本框', title:'点一下，比写一句话给的信息还多',
-      body:'现在版本第一屏是 “Start from your own words.” 加一个空输入框。用户的第一反应是「我该写什么？写了有什么用？」<strong>身体地图把这个成本降到接近零</strong>：点一下手指的动作，产出的是结构化数据，比一句「肩膀有点痛」可用得多。<br><br>注意底部那个「暂时没有，先看看知识库」——没伤的人也有事可做，不会空手离开。',
-      map:'指环传感器：零成本采集。Nomon 没有传感器，那就把点选做成传感器。'},
-    part:{step:'自查 1 / 5', title:'把「哪里痛」问成一道选择题',
-      body:'每个选项后面都跟一句<strong>为什么问这个</strong>（「常见于肩袖问题」）。用户一边选一边学到东西，这本身就是价值交付——不是等到最后才给。',
-      map:'Oura 的 contributors：每个指标都配一句解释，用户才信任它。'},
-    onset:{step:'自查 2 / 5', title:'这一步是整套逻辑的分岔口',
-      body:'急性（今天/这周）和慢性（反复几个月）是两套完全不同的处理方式。<strong>一个问题分掉整棵决策树</strong>，这就是结构化问诊比自由聊天高效的地方——AI 要问出这一条得绕好几轮。',
-      map:'Oura 用睡眠阶段分流建议；Nomon 用病程分流。'},
-    cause:{step:'自查 3 / 5', title:'「说不清」必须是正经选项',
-      body:'很多人真的想不起来怎么弄的。如果不给这个出口，用户要么瞎选一个（污染数据），要么直接退出。<strong>给用户一个诚实的出口，比逼他猜一个答案强。</strong>',
-      map:'Oura 的 Tags：可选、零压力、事后还能补。'},
-    test:{step:'自查 4 / 5', title:'这就是 Nomon 的「传感器读数」',
-      body:'动作 + 疼痛评分 + 活动度三档，构成<strong>可量化、可复测、可画曲线</strong>的数据。关键在「每次复测都做同样两个动作」——这样两周后的数字才有可比性，恢复曲线才立得住。<br><br>试着拖动滑条，右下角的结果分数会跟着变。',
-      map:'指环每晚测 HRV、静息心率、体温。Nomon 每次测疼痛和活动度。'},
-    flags:{step:'自查 5 / 5', title:'安全闸门，必须前置',
-      body:'勾中任意一条，流程立刻转向就医建议，<strong>不再给任何自我处理方案</strong>。这不只是免责——一个会说「这个我不该替你判断」的产品，反而更值得信任。<br><br>可以试着勾一条看看会发生什么。',
-      map:'Oura 也有类似机制：体温异常时提示可能生病，而不是照常给训练建议。'},
-    refer:{step:'安全分支', title:'拒绝回答，也是一种交付',
-      body:'注意这一屏没有空手打发人：它<strong>把刚才的自查记录整理成可以带去就诊的材料</strong>。医生要问的正是这几件事——什么时候开始的、哪个动作痛、能举多高。<br><br>用户没得到诊断，但拿到了实实在在的东西。',
-      map:'—'},
-    result:{step:'核心一屏', title:'第一次就给满，不说「再记几条」',
-      body:'现在版本的 Insights 写着 “A pattern shows after a few entries”，等于告诉用户：你的付出现在不算数。<br><br>这一屏第一次就给四样东西：<strong>带依据的判断 · 恢复分数和它的构成 · 今天能做的三件事 · 一条预期时间线</strong>。「依据」那句最关键——说了依据，用户才理解为什么值得一次次复测。<br><br>点「模拟 7 天后复测」，看第四个因子怎么被激活。',
-      map:'Readiness 分数 + contributors + 一句自然语言解释，Oura 每天早上给的就是这一套。'},
-    filled:{step:'回到首页', title:'有数据之后，首页就自己长满了',
-      body:'同一个页面，现在是分数、一句话解释、今天的动作、两张知识卡。<strong>用户每天打开有明确理由。</strong><br><br>对比一下最开始那屏的大片空白。',
-      map:'Oura 首页：今天的分数 + 为什么是这个分数 + 今天建议怎么安排。'},
-    lib:{step:'内容层', title:'不依赖用户数据也能消费的资产',
-      body:'这是现在版本完全缺失的一层。它的真正作用不是科普，是<strong>在用户零数据的时候证明「我懂这件事」</strong>。<br><br>而且这些卡是双重资产：结果页可以直接引用它们——「因为你符合 X，建议读这张」。',
-      map:'Oura 的睡眠分数 / 生物钟 / 睡眠负债知识卡。'}
-  };
-  var ORDER = ['home','part','onset','cause','test','flags','result'];
-
-  var $ = function(s){return document.querySelector(s)};
-  var $$ = function(s){return Array.prototype.slice.call(document.querySelectorAll(s))};
-
-  function show(name){
-    $$('.screen').forEach(function(el){ el.classList.toggle('active', el.dataset.s===name); });
-    var n = NOTES[name]; if(n){
-      $('#noteStep').textContent = n.step;
-      $('#noteTitle').textContent = n.title;
-      $('#noteBody').innerHTML = n.body;
-      $('#noteMap').textContent = n.map;
-    }
-    var idx = ORDER.indexOf(name);
-    $$('#prog i').forEach(function(el,i){ el.classList.toggle('on', idx>=0 && i<=idx); });
-    if(name==='result') renderResult();
-    var sc = document.querySelector('.screen.active'); if(sc) sc.scrollTop = 0;
-  }
-  ORDER.forEach(function(){ var i=document.createElement('i'); $('#prog').appendChild(i); });
-
-  function toast(msg){
-    var t=$('#toast'); t.textContent=msg; t.classList.add('show');
-    clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('show')},2000);
-  }
-
-  // body map
-  $$('.hot').forEach(function(g){
-    function go(){
-      if(g.dataset.part==='肩'){ S.part='肩'; show('part'); }
-      else toast('这个原型只走通了肩部路径');
-    }
-    g.addEventListener('click', go);
-    g.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); go(); } });
+/* ---------- screens ---------- */
+function show(n){
+  $$('.screen').forEach(function(e){e.classList.toggle('active', e.dataset.s===n)});
+  var sc=$('.screen.active'); if(sc) sc.scrollTop=0;
+  $('#nav').style.display = NAV_SCREENS.indexOf(n)>=0 ? 'flex' : 'none';
+  $$('.navItem').forEach(function(b){
+    var t=b.dataset.nav; if(t==='home') t = S.assessed?'today':'home';
+    b.classList.toggle('on', t===n);
   });
+  if(n==='part') drawCurve();
+  if(n==='plan') renderPlan();
+  if(n==='insights') renderInsights();
+  if(n==='today') renderToday();
+}
+function toast(m){var t=$('#toast'); t.textContent=m; t.classList.add('on');
+  clearTimeout(t._t); t._t=setTimeout(function(){t.classList.remove('on')},2200);}
 
-  // single-select option groups
-  function single(sel, key){
-    var box=$(sel); if(!box) return;
-    box.addEventListener('click', function(e){
-      var b=e.target.closest('.opt'); if(!b) return;
-      Array.prototype.forEach.call(box.children, function(c){ c.setAttribute('aria-pressed', c===b ? 'true':'false'); });
-      S[key]=b.dataset.v;
-      var scr=box.closest('.screen'); var nb=scr.querySelector('[data-next]'); if(nb) nb.disabled=false;
-    });
-  }
-  single('#optPart','side'); single('#optOnset','onset'); single('#optCause','cause');
+/* ---------- body map / quick chips ---------- */
+$$('.hot').forEach(function(g){
+  function go(){ if(g.dataset.part==='肩') show('q1'); else toast('这个原型只走通了肩部路径'); }
+  g.addEventListener('click',go);
+  g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();go();}});
+});
+$$('[data-quick]').forEach(function(b){
+  b.addEventListener('click',function(){ b.dataset.quick==='肩' ? show('q1') : toast('这个原型只走通了肩部路径'); });
+});
 
-  // flags: multi
-  $('#optFlags').addEventListener('click', function(e){
+/* ---------- single/multi select ---------- */
+[['#g-side','side','q1'],['#g-onset','onset','q2'],['#g-cause','cause','q3']].forEach(function(a){
+  var box=$(a[0]);
+  box.addEventListener('click',function(e){
     var b=e.target.closest('.opt'); if(!b) return;
-    var on = b.getAttribute('aria-pressed')==='true';
-    b.setAttribute('aria-pressed', on?'false':'true');
-    S.flags = $$('#optFlags .opt[aria-pressed="true"]').map(function(x){return x.dataset.v});
-    var btn = document.querySelector('[data-next="result"]');
-    if(S.flags.length){ btn.textContent='看结果'; btn.classList.add('danger'); }
-    else { btn.textContent='以上都没有，看结果'; btn.classList.remove('danger'); }
+    [].forEach.call(box.children,function(c){c.setAttribute('aria-pressed', c===b?'true':'false')});
+    S[a[1]]=b.dataset.v;
+    $('.screen[data-s="'+a[2]+'"] [data-next]').disabled=false;
   });
-
-  // sliders
-  ['p1','p2'].forEach(function(id){
-    $('#'+id).addEventListener('input', function(){ S[id]=+this.value; $('#'+id+'v').textContent=this.value; });
+});
+$('#g-flags').addEventListener('click',function(e){
+  var b=e.target.closest('.opt'); if(!b) return;
+  b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true'?'false':'true');
+  S.flags=$$('#g-flags .opt[aria-pressed="true"]').map(function(x){return x.dataset.v});
+  var t=$('#toResult');
+  if(S.flags.length){t.textContent='看结果'; t.classList.add('danger');}
+  else {t.textContent='以上都没有，看结果'; t.classList.remove('danger');}
+});
+['p1','p2'].forEach(function(id){
+  $('#'+id).addEventListener('input',function(){S[id]=+this.value; $('#'+id+'v').textContent=this.value;});
+});
+$('#rp1').addEventListener('input',function(){$('#r1v').textContent=this.value});
+$('#rp2').addEventListener('input',function(){$('#r2v').textContent=this.value});
+$$('[data-rom]').forEach(function(row){
+  row.addEventListener('click',function(e){
+    var c=e.target.closest('.pill'); if(!c) return;
+    [].forEach.call(row.children,function(x){x.setAttribute('aria-pressed', x===c?'true':'false')});
+    if(row.dataset.rom.charAt(0)!=='r'||row.dataset.rom.length===2) S[row.dataset.rom]=+c.dataset.v;
   });
-  // rom + impact chips
-  $$('[data-rom]').forEach(function(row){
-    row.addEventListener('click', function(e){
-      var c=e.target.closest('.chip'); if(!c) return;
-      Array.prototype.forEach.call(row.children, function(x){ x.setAttribute('aria-pressed', x===c?'true':'false'); });
-      S[row.dataset.rom]=+c.dataset.v;
-    });
+});
+$('#g-impact').addEventListener('click',function(e){
+  var c=e.target.closest('.pill'); if(!c) return;
+  c.setAttribute('aria-pressed', c.getAttribute('aria-pressed')==='true'?'false':'true');
+  S.impact=$$('#g-impact .pill[aria-pressed="true"]').map(function(x){return x.dataset.v});
+});
+
+/* ---------- nav / routing ---------- */
+document.addEventListener('click',function(e){
+  var b=e.target.closest('[data-next],[data-go],[data-nav],[data-article]'); if(!b) return;
+  if(b.dataset.article){ openArticle(b.dataset.article); return; }
+  if(b.dataset.nav){
+    var t=b.dataset.nav;
+    if(t==='home') return show(S.assessed?'today':'home');
+    if(!S.assessed){ toast('先完成一次自查，这里才有你的数据'); return; }
+    return show(t);
+  }
+  show(b.dataset.next||b.dataset.go);
+});
+$('#toResult').addEventListener('click',function(){
+  if(S.flags.length){ renderRefer(); show('refer'); }
+  else { S.assessed=true; renderResult(true); show('result'); }
+});
+$('#exportBtn').addEventListener('click',function(){toast('已生成 PDF，可直接带去就诊')});
+$('#mkPlan').addEventListener('click',function(){S.planMade=true; show('plan'); toast('7 天恢复计划已建立')});
+$('#whyBtn').addEventListener('click',function(){
+  var w=$('#whyBox'); w.classList.toggle('open');
+  this.textContent=w.classList.contains('open')?'收起':'为什么这么判断？';
+});
+
+/* ---------- scoring ---------- */
+function calc(p1,p2,r1,r2,imp,prevBase){
+  var pain=(p1+p2)/2, fP=Math.round((10-pain)/10*100);
+  var M={2:100,1:55,0:15}, fR=Math.round((M[r1]+M[r2])/2);
+  var fI=Math.max(10,100-imp.length*30), fT=null, base=(fP*.35+fR*.30+fI*.20)/0.85, score;
+  if(prevBase==null){ score=Math.round(base); }
+  else{
+    var d=Math.max(-40,Math.min(40, base-prevBase));
+    fT=Math.round(Math.max(0,Math.min(100,50+d*1.6)));
+    score=Math.round(fP*.35+fR*.30+fI*.20+fT*.15);
+  }
+  return {score:score,fP:fP,fR:fR,fI:fI,fT:fT,base:base,pain:pain};
+}
+function verdict(c){
+  if(S.r1!==2) return {l:'活动度受限比较明显，建议尽早做一次线下评估。',
+    w:'依据：你现在没法把手臂主动举过头顶。',
+    d:'这既可能是疼痛导致的保护性受限，也可能是结构性问题。这两者靠自述分不开——需要有人上手查，做几个特定的抗阻测试才能区分。这不是坏消息，只是我到能力边界了。'};
+  if(S.onset==='更久') return {l:'更像长期负荷累积造成的肩部激惹，不是一次急性损伤。',
+    w:'依据：你能主动把手举过头，但症状反复了很久。',
+    d:'能举过头说明主要结构是完整的。反复很久的问题通常和日常姿势、训练安排的累积负荷有关——这类情况靠单纯休息不解决，一停就好、一练又犯，真正要改的是负荷怎么加。'};
+  if(c.pain>=7) return {l:'疼痛程度偏高，先按急性期处理，48 小时后重新评估。',
+    w:'依据：能举过头，但疼痛评分已经影响动作质量。',
+    d:'没有提示严重结构损伤的信号，所以不用紧张。但这个疼痛水平下动作模式一定是代偿的，硬练弊大于利——先把刺激降下来，等分数回到 5 以下再谈训练。'};
+  return {l:'最可能是肩袖肌腱受到激惹，而不是撕裂。',
+    w:'依据：能主动举过头，且没有夜间痛醒、没有明显无力。',
+    d:'区分「激惹」和「撕裂」最关键的三条线索就是主动活动度、夜间痛、肌力。你三条都是好的一侧：能自己把手举上去说明肌腱的传力还在，没有夜间痛说明炎症反应不剧烈。这类问题绝大多数在 1–3 周内自己好转，前提是别继续刺激它。'};
+}
+function todos(c){
+  if(c.pain>=7) return ['贴墙做钟摆晃动，30 秒 ×3 次，只在不痛范围里动','避开一切过顶动作：推举、引体、扣球','48 小时后重测这两个动作，看疼痛分降没降'];
+  if(S.onset==='更久') return ['贴墙爬手 ×10，加肩胛后缩 ×15。慢比多重要','先别练过顶推举，训练量这周不再加','留意是不是久坐或固定姿势后更痛——这是找根因的线索'];
+  return ['贴墙爬手 ×10，一天两组，到有点紧但不痛的位置停住','这周避开过顶推举和卧推大重量','留意抬手过程中有没有「卡一下」的感觉'];
+}
+function bar(f,v,val,suf){ var e=$(f); e.style.width='0%'; setTimeout(function(){e.style.width=val+'%'},60); $(v).textContent=val+(suf||''); }
+function countUp(el,to){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches){el.textContent=to; return;}
+  var t0=null; requestAnimationFrame(function s(ts){ if(!t0)t0=ts; var k=Math.min(1,(ts-t0)/850);
+    el.textContent=Math.round(to*(1-Math.pow(1-k,3))); if(k<1) requestAnimationFrame(s); });
+}
+
+var last=null;
+function renderResult(first){
+  var prev = first ? null : last.base;
+  var c=calc(S.p1,S.p2,S.r1,S.r2,S.impact,prev), v=verdict(c), t=todos(c);
+  if(first){ S.history=[c.score]; } 
+  last=c;
+  $('#vLead').textContent=v.l; $('#vWhy').textContent=v.w; $('#whyBox').textContent=v.d;
+  countUp($('#scoreNum'),c.score);
+  var arc=$('#ringArc'); arc.style.strokeDashoffset=251.3;
+  setTimeout(function(){arc.style.strokeDashoffset=251.3*(1-c.score/100)},80);
+  $('#scoreSt').textContent = c.score>=80?'状态不错':c.score>=60?'恢复中':c.score>=40?'需要保护':'刺激明显';
+  bar('#f1','#v1',c.fP); bar('#f2','#v2',c.fR); bar('#f3','#v3',c.fI);
+  if(c.fT==null){
+    $('#row4').classList.add('muted'); $('#f4').style.width='0%'; $('#v4').textContent='待复测';
+    $('#scoreDt').textContent='首次评估没有趋势数据，这一项暂不计入，其余三项按权重归一。';
+    $('#tl').innerHTML='这类问题<b>通常 1–3 周缓解</b>。7 天后我提醒你重做这两个动作。如果那时没有改善，说明我的假设需要修正，我们换个方向。';
+  }else{
+    $('#row4').classList.remove('muted'); bar('#f4','#v4',c.fT);
+    $('#scoreDt').textContent = c.score>=S.history[0]
+      ? '活动度的改善是这次上涨的主要来源。' : '分数下降主要来自疼痛升高，建议把训练量往回调。';
+    $('#tl').innerHTML='按这个速度，<b>大约再 1–2 周</b>可以逐步加回过顶动作。重返标准：两个动作都能无痛完成，且活动度和健侧接近。';
+  }
+  $('#tDo').textContent=t[0]; $('#tNo').textContent=t[1]; $('#tWa').textContent=t[2];
+  $('#resStep').textContent = first ? '评估结果 · 右肩' : '复测结果 · 第 '+S.day+' 天';
+  S.taskList=t;
+}
+
+/* ---------- refer ---------- */
+function renderRefer(){
+  var M={麻木:'手臂或手指发麻',无力:'明显使不上劲',变形:'肩膀外观变形',夜痛:'夜里会被痛醒',发烧:'发烧或局部红肿发烫'};
+  $('#flagEcho').innerHTML=S.flags.map(function(f){return '<li>'+M[f]+'</li>'}).join('');
+}
+
+/* ---------- today ---------- */
+function renderToday(){
+  if(!last) return;
+  $('#tdScore').textContent=last.score;
+  $('#tdDay').textContent='第 '+S.day+' 天';
+  var d = S.history.length>1 ? last.score-S.history[0] : null;
+  $('#tdDelta').textContent = d==null ? '首次评估' : (d>=0?'+':'')+d+' 比首次';
+  $('#tdCap').textContent = d==null ? '刚做完首次自查，7 天后提醒你复测。' : '活动度是这周主要的改善项。';
+  $('#tdDot').className='dot '+(last.score>=75?'ok':last.score>=45?'warn':'acute');
+  $('#tdTitle').textContent='右肩 · '+(last.score>=75?'接近正常':last.score>=45?'恢复中':'急性期');
+  var box=$('#tdTasks'); box.innerHTML='';
+  (S.taskList||[]).forEach(function(t,i){
+    var b=document.createElement('button');
+    b.className='task'; b.setAttribute('aria-pressed',S.tasks[i]?'true':'false');
+    b.innerHTML='<span class="box">✓</span><span><span class="nm">'+['今天做','今天避开','今天留意'][i]+'</span><span class="sub">'+t+'</span></span>';
+    b.addEventListener('click',function(){toggleTask(i)});
+    box.appendChild(b);
   });
-  $('#impact').addEventListener('click', function(e){
-    var c=e.target.closest('.chip'); if(!c) return;
-    c.setAttribute('aria-pressed', c.getAttribute('aria-pressed')==='true'?'false':'true');
-    S.impact = $$('#impact .chip[aria-pressed="true"]').map(function(x){return x.dataset.v});
+  $('#tdCount').textContent=S.tasks.filter(Boolean).length+' / 3';
+}
+function toggleTask(i){
+  S.tasks[i]=!S.tasks[i];
+  renderToday(); if($('.screen.active').dataset.s==='plan') renderPlan();
+  if(S.tasks.filter(Boolean).length===3) toast('今天的三件事都做完了');
+}
+
+/* ---------- plan ---------- */
+function renderPlan(){
+  var cal=$('#cal'); cal.innerHTML='';
+  for(var i=1;i<=7;i++){
+    var d=document.createElement('div');
+    d.className='day'+(i<S.day?' done':i===S.day?' today':' future');
+    d.innerHTML='<span>D'+i+'</span><b>'+i+'</b>';
+    cal.appendChild(d);
+  }
+  var box=$('#planTasks'); box.innerHTML='';
+  (S.taskList||[]).forEach(function(t,i){
+    var b=document.createElement('button');
+    b.className='task'; b.setAttribute('aria-pressed',S.tasks[i]?'true':'false');
+    b.innerHTML='<span class="box">✓</span><span><span class="nm">'+['做','避开','留意'][i]+'</span><span class="sub">'+t+'</span></span>';
+    b.addEventListener('click',function(){toggleTask(i); renderPlan();});
+    box.appendChild(b);
   });
+  var n=S.tasks.filter(Boolean).length;
+  $('#taskNum').textContent=n;
+  $('#taskArc').style.strokeDashoffset=175.9*(1-n/3);
+  $('#taskSt').textContent=['还没开始','开了个头','就差一件','今天完成'][n];
+}
 
-  // nav
-  document.addEventListener('click', function(e){
-    var b=e.target.closest('[data-next],[data-back],[data-go]'); if(!b) return;
-    if(b.dataset.go){
-      if(b.dataset.go==='home' && b.id==='btnRestart'){ reset(); }
-      show(b.dataset.go); return;
-    }
-    if(b.dataset.back){ show(b.dataset.back); return; }
-    var nx=b.dataset.next;
-    if(nx==='result' && S.flags.length){ renderRefer(); show('refer'); return; }
-    show(nx);
+/* ---------- insights ---------- */
+function renderInsights(){
+  var box=$('#insList'); box.innerHTML='';
+  var items = S.history.length>1
+    ? [['活动度先动，疼痛后降','你的「够背后」这个动作从只到臀部改善到腰以上，而疼痛分只降了 1。这个顺序是典型的好转信号。'],
+       ['诱因锁定在过顶负荷','两次记录都指向举重物 / 过顶推举。这周的训练安排值得改一下。']]
+    : [['还需要一次复测','规律要至少两个时间点才能画出来。7 天后复测一次，这里就会有内容。']];
+  items.forEach(function(it){
+    var d=document.createElement('div'); d.className='insight';
+    d.innerHTML='<div class="t">'+it[0]+'</div><div class="s">'+it[1]+'</div>';
+    box.appendChild(d);
   });
+  $('#insCount').textContent = S.history.length>1 ? S.history.length+' 次记录' : '需要更多记录';
+}
 
-  function reset(){
-    S={part:null,onset:null,cause:null,flags:[],p1:3,p2:4,r1:2,r2:1,impact:['穿衣'],day:1,prev:null};
-    $('#p1').value=3; $('#p1v').textContent='3'; $('#p2').value=4; $('#p2v').textContent='4';
-    $$('.opt[aria-pressed="true"]').forEach(function(x){x.setAttribute('aria-pressed','false')});
-    $$('[data-next]').forEach(function(x){ if(x.dataset.next!=='result'&&x.dataset.next!=='flags') x.disabled=true; });
-    var btn=document.querySelector('[data-next="result"]'); btn.textContent='以上都没有，看结果'; btn.classList.remove('danger');
-    $('#btnDay7').style.display='block';
-  }
-
-  function calc(){
-    var painAvg=(S.p1+S.p2)/2;
-    var fPain=Math.round((10-painAvg)/10*100);
-    var romMap={2:100,1:55,0:15};
-    var fRom=Math.round((romMap[S.r1]+romMap[S.r2])/2);
-    var fImp=Math.max(10, 100-S.impact.length*30);
-    var w={p:.35,r:.30,i:.20,t:.15};
-    var fTrend=null, score;
-    if(S.prev===null){
-      score=Math.round((fPain*w.p+fRom*w.r+fImp*w.i)/(w.p+w.r+w.i));
-    }else{
-      var d=Math.max(-40,Math.min(40, (fPain*w.p+fRom*w.r+fImp*w.i)/(w.p+w.r+w.i) - S.prev));
-      fTrend=Math.round(Math.max(0,Math.min(100, 50+d*1.6)));
-      score=Math.round(fPain*w.p+fRom*w.r+fImp*w.i+fTrend*w.t);
-    }
-    return {score:score,fPain:fPain,fRom:fRom,fImp:fImp,fTrend:fTrend,painAvg:painAvg};
-  }
-
-  function verdictOf(c){
-    var overhead = S.r1===2;
-    var night = false;
-    if(!overhead){
-      return {lead:'活动度受限比较明显，建议尽早做一次线下评估。',
-        why:'依据：你现在没法把手臂主动举过头顶。这既可能是疼痛导致的保护性受限，也可能是结构性问题——这两者靠自述分不开，需要有人上手查。'};
-    }
-    if(S.onset==='更久'){
-      return {lead:'更像是长期负荷累积造成的肩部激惹，不是一次急性损伤。',
-        why:'依据：你能主动把手举过头，说明主要结构是完整的；但症状反复了很久，这类情况通常和日常姿势、训练安排有关，靠休息不解决，得改负荷。'};
-    }
-    if(c.painAvg>=7){
-      return {lead:'疼痛程度偏高，先按急性期处理，48 小时后重新评估。',
-        why:'依据：你能举过头，暂时没有提示严重结构损伤的信号；但疼痛评分已经到了会影响动作质量的水平，这个阶段硬练弊大于利。'};
-    }
-    return {lead:'最可能是肩袖肌腱受到激惹，而不是撕裂。',
-      why:'依据：你能主动把手臂举过头顶，而且没有夜间痛醒、没有明显无力——这两点是区分「激惹」和「撕裂」最关键的线索。'};
-  }
-
-  function todosOf(c){
-    if(c.painAvg>=7) return {
-      d:'贴墙做钟摆晃动，每次 30 秒，一天 3 次。只在不痛的范围里动。',
-      n:'避开一切过顶动作：推举、引体、扣球。',
-      w:'48 小时后重测这两个动作，看疼痛分有没有降下来。'};
-    if(S.onset==='更久') return {
-      d:'贴墙爬手 ×10，加上肩胛后缩 ×15。慢，比多重要。',
-      n:'先别练过顶推举；训练量这周不要再加。',
-      w:'留意是不是久坐或者某个固定姿势之后更痛——这是找到根因的线索。'};
-    return {
-      d:'贴墙爬手 ×10，一天两组。到有点紧但不痛的位置停住。',
-      n:'这周避开过顶推举和卧推的大重量。',
-      w:'留意抬手过程中有没有「卡一下」的感觉，有的话记下来。'};
-  }
-
-  function animBar(id,val,valId,suffix){
-    var el=$('#'+id); el.style.width='0%';
-    setTimeout(function(){ el.style.width=val+'%'; },60);
-    $('#'+valId).textContent = val + (suffix||'');
-  }
-
-  function renderResult(){
-    var c=calc(), v=verdictOf(c), t=todosOf(c);
-    $('#verdictLead').textContent=v.lead;
-    $('#verdictWhy').textContent=v.why;
-
-    // count up
-    var big=$('#scoreBig'), from=0, to=c.score, t0=null;
-    function step(ts){ if(!t0)t0=ts; var k=Math.min(1,(ts-t0)/700);
-      big.textContent=Math.round(from+(to-from)*(1-Math.pow(1-k,3))); if(k<1) requestAnimationFrame(step); }
-    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){ big.textContent=to; } else { requestAnimationFrame(step); }
-
-    animBar('f1',c.fPain,'v1'); animBar('f2',c.fRom,'v2'); animBar('f3',c.fImp,'v3');
-
-    if(c.fTrend===null){
-      $('#row4').classList.add('muted'); $('#f4').style.width='0%'; $('#v4').textContent='待复测';
-      $('#scoreDelta').textContent=''; $('#resDay').textContent='今天 · 首次评估';
-      $('#scoreCap').textContent='首次评估还没有趋势数据，这一项暂不计入，权重按其余三项归一。';
-      $('#spark').style.display='none';
-      $('#timeline').innerHTML='这类问题<b>通常 1–3 周缓解</b>。7 天后我会提醒你重做刚才那两个动作。如果到时候没有改善，说明我的假设需要修正，我们再换个方向。';
-    }else{
-      $('#row4').classList.remove('muted'); animBar('f4',c.fTrend,'v4');
-      $('#resDay').textContent='第 7 天 · 复测';
-      var d=c.score-S.prevScore;
-      $('#scoreDelta').textContent=(d>=0?'+':'')+d+' 比首次';
-      $('#scoreDelta').style.color = d>=0 ? 'var(--ok)' : 'var(--acute)';
-      $('#scoreCap').textContent = d>=0
-        ? '活动度的改善是这次分数上涨的主要来源，疼痛的下降其次。'
-        : '分数下降了，主要来自疼痛评分升高——建议把这周的训练量往回调。';
-      var pts=[[10,26],[100,24],[190,18],[290, Math.max(6, 30-c.score*0.24)]];
-      $('#sparkLine').setAttribute('points', pts.map(function(p){return p.join(',')}).join(' '));
-      $('#sparkDot').setAttribute('cx',pts[3][0]); $('#sparkDot').setAttribute('cy',pts[3][1]);
-      $('#spark').style.display='block';
-      $('#timeline').innerHTML='按这个速度，<b>大约再过 1–2 周</b>可以开始逐步加回过顶动作。重返训练的标准是：两个动作都能无痛完成，且活动度和健侧接近。';
-    }
-    $('#todoDo').textContent=t.d; $('#todoNo').textContent=t.n; $('#todoWatch').textContent=t.w;
-
-    $('#homeScore').textContent=c.score;
-    $('#homeDelta').textContent = c.fTrend===null ? '首次评估' : (c.score-S.prevScore>=0?'+':'')+(c.score-S.prevScore)+' 比首次';
-    $('#homeCap').textContent = c.fTrend===null ? '刚做完首次自查，7 天后提醒你复测。' : '活动度是这周主要的改善项。';
-    $('#homeTodo').innerHTML='✓ '+t.d+'<br>✕ '+t.n;
-  }
-
-  $('#btnDay7').addEventListener('click', function(){
-    var c=calc();
-    S.prev=(c.fPain*.35+c.fRom*.30+c.fImp*.20)/0.85; S.prevScore=c.score;
-    S.p1=Math.max(0,S.p1-1); S.p2=Math.max(0,S.p2-1);
-    if(S.r2<2) S.r2++; if(S.impact.length>1) S.impact=S.impact.slice(1);
-    $('#p1').value=S.p1; $('#p1v').textContent=S.p1;
-    $('#p2').value=S.p2; $('#p2v').textContent=S.p2;
-    this.style.display='none';
-    renderResult();
+/* ---------- curve ---------- */
+function drawCurve(){
+  var sv=$('#curve'), h=S.history.length?S.history:[0], W=300,H=64,pad=6;
+  var pts=h.map(function(v,i){
+    var x = h.length===1 ? W-pad : pad+(W-pad*2)*i/(h.length-1);
+    return [x, H-pad-(H-pad*2)*v/100];
   });
+  if(h.length===1) pts.unshift([pad, H-pad-(H-pad*2)*h[0]/100]);
+  var d=pts.map(function(p,i){return (i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)}).join(' ');
+  var area=d+' L'+pts[pts.length-1][0]+' '+(H-pad)+' L'+pts[0][0]+' '+(H-pad)+' Z';
+  sv.innerHTML='<line class="gr" x1="0" y1="'+(H/2)+'" x2="'+W+'" y2="'+(H/2)+'"/>'
+    +'<path class="ar" d="'+area+'"/><path class="ln" d="'+d+'"/>'
+    +'<circle class="dt" cx="'+pts[pts.length-1][0]+'" cy="'+pts[pts.length-1][1].toFixed(1)+'" r="3.4"/>';
+  var ln=sv.querySelector('.ln'); ln.style.setProperty('--len', ln.getTotalLength());
+  var dd = h.length>1 ? h[h.length-1]-h[0] : null;
+  var e=$('#curveDelta');
+  e.textContent = dd==null ? '首次评估' : (dd>=0?'+':'')+dd+' 比首次';
+  e.className='c'+(dd!=null&&dd<0?' down':'');
+  $('#xa2').textContent = h.length>1?'':''; $('#xa3').textContent = h.length>1?('第 '+S.day+' 天'):'';
+  var st=$$('#stages .stage'), idx = !last?0 : last.score>=88?2:last.score>=55?1:0;
+  st.forEach(function(x,i){x.className='stage'+(i<idx?' done':i===idx?' on':'')});
+  $('#stageNote').textContent=['这个阶段的目标不是练，是别让它更烦——把日常动作范围维持住。',
+    '这个阶段的目标是把活动度找回来，疼痛允许的范围内多动。',
+    '这个阶段可以开始加回负荷了，从轻重量、慢节奏开始。'][idx];
+  if(last){ bar('#pf1','#pv1',last.fP); bar('#pf2','#pv2',last.fR); bar('#pf3','#pv3',last.fI); }
+}
 
-  function renderRefer(){
-    var map={麻木:'手臂或手指发麻',无力:'明显使不上劲',变形:'肩膀外观变形',夜痛:'夜里会被痛醒',发烧:'发烧或局部红肿发烫'};
-    $('#flagEcho').innerHTML = S.flags.map(function(f){return '<li>'+map[f]+'</li>'}).join('');
-  }
+/* ---------- recheck sheet ---------- */
+function openSheet(){$('#bd').classList.add('on'); $('#sheet').classList.add('on');}
+function closeSheet(){$('#bd').classList.remove('on'); $('#sheet').classList.remove('on');}
+$('#reBtn').addEventListener('click',openSheet);
+$('#bd').addEventListener('click',closeSheet);
+$('#closeSheet').addEventListener('click',closeSheet);
+$('#saveRe').addEventListener('click',function(){
+  S.p1=+$('#rp1').value; S.p2=+$('#rp2').value;
+  S.r1=+$$('[data-rom="rr1"] .pill[aria-pressed="true"]')[0].dataset.v;
+  S.r2=+$$('[data-rom="rr2"] .pill[aria-pressed="true"]')[0].dataset.v;
+  if(S.impact.length>1) S.impact=S.impact.slice(1);
+  S.day=7;
+  renderResult(false);
+  S.history.push(last.score);
+  $('#ev2').style.display='block'; $('#ev1k').textContent='第 1 天';
+  closeSheet(); show('result');
+  toast('复测已保存，趋势因子已激活');
+});
 
-  show('home');
+/* ---------- articles ---------- */
+var ART={
+  rest:['负荷管理','为什么「完全休息」经常拖慢恢复',
+    ['很多人受伤后的第一反应是「先歇着」。歇几天确实不疼了——但一恢复活动，疼痛往往原样回来，甚至更容易再犯。','原因是<b>肌腱和肌肉靠负荷维持强度</b>。完全不用它，组织的承载能力会下降；等你回去练，负荷没变、能力变弱了，结果就是再次超载。','正确做法不是「休息 vs 硬练」的二选一，而是找到<b>能承受又不加重</b>的那个量：疼痛在 0–3 分之内、第二天不加重，就是可以继续的信号。'],
+    '一句话：要减的是「超过承受能力的那部分负荷」，不是「全部活动」。'],
+  rom:['恢复指标','活动度为什么比疼痛更能反映恢复',
+    ['疼痛受睡眠、情绪、天气、注意力影响，波动很大。今天疼 5 分、明天疼 3 分，不一定说明好转。','<b>活动度是结构性指标</b>：能举多高、能够到背后哪个位置，受主观状态影响小得多，而且可以每天用同样的方式测。','这就是为什么 Nomon 每次复测都让你做<b>同样两个动作</b>——不是偷懒，是为了让数字之间真的可比。'],
+    '看恢复趋势时，优先看活动度那条线，疼痛线用来做参考。'],
+  pain:['基础认知','疼痛 ≠ 损伤：疼痛评分该怎么用',
+    ['疼痛是身体的警报系统，不是损伤程度的读数。轻微的组织刺激可能很疼，严重的结构问题反而可能不太疼。','评分的价值不在于「几分算严重」，而在于<b>同一个人、同一个动作、不同时间的比较</b>。你上周举手疼 6 分，这周疼 3 分，这个下降是真信息。','所以别纠结「我这个 5 分算重吗」。要问的是「和三天前比，是几分」。'],
+    '0–3 分：通常可以继续活动。4–6 分：减量。7 分以上：那个动作先停。'],
+  peace:['急性处理','急性期 48 小时：PEACE & LOVE',
+    ['你可能听过 RICE（休息、冰敷、加压、抬高）。这个方案已经被更新了——问题出在「完全休息」和「长时间冰敷」都可能干扰正常的愈合反应。','现在的共识是 <b>PEACE &amp; LOVE</b>：前 48 小时保护、抬高、避免消炎药、加压、教育；之后转向负荷、乐观、血流、运动。','关键变化是<b>「早点动起来」</b>：在不加重的前提下，尽早恢复活动比躺着好。'],
+    '前 48 小时：保护但别彻底不动。48 小时后：开始有控制地加负荷。'],
+  red:['安全边界','六种红旗信号：出现就别自己处理',
+    ['明显无力（端不起杯子、抬不起手臂）；肢体麻木或放射痛；关节外观变形、鼓包或凹陷；夜间痛到被弄醒；发烧或局部红肿发烫；外伤后立刻无法负重。','这几种情况的共同点是：<b>它们提示的问题不在自我管理的范围内</b>，需要影像或专业查体才能判断。','任何 app、任何 AI 都不该在这些情况下给你「练什么动作」。会这么做的产品，是在拿你的健康换留存。'],
+    '出现任意一条：停止自我处理，找专业人士当面看。'],
+  line:['恢复预期','恢复不是直线：平台期和小反复都正常',
+    ['大多数人期待的恢复是一条向上的直线。真实的恢复是<b>台阶加锯齿</b>：好几天、退半天，然后再上一个台阶。','这意味着单看某一天的分数没有意义。一次反复不代表方案错了——真正的判断依据是<b>两周的整体趋势</b>。','这也是为什么 Nomon 强调复测：一个点是噪音，三个点才是趋势。'],
+    '判断标准：不是「今天比昨天好吗」，是「这周比上周好吗」。']
+};
+var artFrom='home';
+function openArticle(k){
+  var a=ART[k]; if(!a) return;
+  artFrom=$('.screen.active').dataset.s;
+  $('#artK').textContent=a[0]; $('#artT').textContent=a[1];
+  $('#artB').innerHTML=a[2].map(function(p){return '<p>'+p+'</p>'}).join('');
+  $('#artC').textContent=a[3];
+  show('article');
+}
+$('#artBack').addEventListener('click',function(){show(artFrom)});
+$('#artBack2').addEventListener('click',function(){show(artFrom)});
+
+show('home');
 })();
 </script>
 </body>
