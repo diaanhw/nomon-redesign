@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nomon 改进设计方案</title>
+<meta name="description" content="Nomon 测试版的体验诊断与重构建议，对标 Oura App。含可点击原型。">
+<style>
+:root{
+  --page:#E8E5DF; --bg:#F2F0EB; --surface:#FFFFFF; --sunk:#EDEAE3;
+  --ink:#1B1F1C; --ink-2:#4E564F; --ink-3:#8A918A;
+  --rule:#DFDBD2; --rule-2:#C9C4B8; --green:#2E6B57; --green-deep:#2A5546; --terra:#B5583A;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,"Songti SC","Source Han Serif SC",Georgia,serif;
+  --shadow:0 1px 2px rgba(27,31,28,.05), 0 14px 36px rgba(27,31,28,.09);
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --page:#0E120F; --bg:#161A17; --surface:#1D231F; --sunk:#242B26;
+  --ink:#E9EDE8; --ink-2:#A7AFA7; --ink-3:#79817A;
+  --rule:#2A322C; --rule-2:#3A433C; --green:#7CBBA2; --green-deep:#22392F; --terra:#D4795A;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 14px 36px rgba(0,0,0,.4);}}
+:root[data-theme="dark"]{
+  --page:#0E120F; --bg:#161A17; --surface:#1D231F; --sunk:#242B26;
+  --ink:#E9EDE8; --ink-2:#A7AFA7; --ink-3:#79817A;
+  --rule:#2A322C; --rule-2:#3A433C; --green:#7CBBA2; --green-deep:#22392F; --terra:#D4795A;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 14px 36px rgba(0,0,0,.4);}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--page); color:var(--ink); font-size:17px; line-height:1.75;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB",sans-serif;
+  -webkit-font-smoothing:antialiased;}
+.wrap{max-width:660px; margin:0 auto; padding:56px 22px 80px;}
+.eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--green); margin:0 0 14px;}
+h1{font-family:var(--serif); font-size:clamp(30px,7vw,42px); font-weight:600; line-height:1.2; margin:0 0 16px; letter-spacing:-.01em; text-wrap:balance;}
+.lede{font-size:17.5px; color:var(--ink-2); margin:0 0 8px; max-width:56ch;}
+.thesis{background:var(--green-deep); color:#F0EFE9; border-radius:18px; padding:22px 24px; margin:32px 0 40px;}
+.thesis p{margin:0; font-family:var(--serif); font-size:19px; line-height:1.6;}
+h2{font-size:14px; font-family:var(--mono); font-weight:400; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); margin:0 0 14px;}
+.cards{display:grid; gap:12px; margin-bottom:40px;}
+a.card{display:block; background:var(--surface); border:1px solid var(--rule); border-radius:16px;
+  padding:20px 22px; text-decoration:none; color:inherit; box-shadow:var(--shadow); transition:border-color .16s, transform .16s;}
+a.card:hover{border-color:var(--green); transform:translateY(-1px)}
+a.card:focus-visible{outline:2px solid var(--green); outline-offset:3px}
+a.card .t{font-size:17.5px; font-weight:650; margin-bottom:5px; display:flex; align-items:center; gap:9px;}
+a.card .badge{font-family:var(--mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase;
+  background:var(--terra); color:#fff; padding:3px 8px; border-radius:20px; font-weight:500;}
+a.card .d{font-size:14.5px; color:var(--ink-2); line-height:1.6;}
+ol{padding-left:22px; margin:0 0 40px; color:var(--ink-2); font-size:15.5px}
+ol li{margin-bottom:9px} ol b{color:var(--ink)}
+footer{border-top:1px solid var(--rule); padding-top:22px; font-family:var(--mono); font-size:12px; color:var(--ink-3); line-height:1.9;}
+footer a{color:var(--green)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Nomon · 体验诊断与重构建议</p>
+  <h1>不用打一个字，也能拿到结论</h1>
+  <p class="lede">给 Nomon 测试版的一份改进方案，对标 Oura App 的产品结构。核心是把入口从空白输入框换成身体地图，让用户第一次使用就拿到判断、分数和今天该做什么。</p>
+
+  <div class="thesis">
+    <p>现在的 Nomon 是「你先说，我再帮你」。<br>建议改成「我先让你看见自己的身体，你自然就想说了」。</p>
+  </div>
+
+  <h2>从这里开始</h2>
+  <div class="cards">
+    <a class="card" href="demo/">
+      <div class="t">可点击原型 <span class="badge">先看这个</span></div>
+      <div class="d">完整 App，手机上铺满全屏。点身体地图上的肩膀开始，走完五步就有结果。恢复分数是按你的输入实时算的。</div>
+    </a>
+    <a class="card" href="demo/annotated.html">
+      <div class="t">讲解版</div>
+      <div class="d">同一套流程，每一屏旁边说明它在解决什么问题、对应 Oura 的哪一层。想理解「为什么这么改」看这个。</div>
+    </a>
+    <a class="card" href="docs/design-proposal.html">
+      <div class="t">完整设计方案</div>
+      <div class="d">四个诊断、Oura 结构映射、逐页重构建议、恢复分数算法、安全底线与 P0/P1/P2 优先级。</div>
+    </a>
+  </div>
+
+  <h2>建议的体验路径</h2>
+  <ol>
+    <li>打开原型，点身体地图上的<b>肩膀</b></li>
+    <li>走完五步评估——注意<b>第四步的动作测试</b>，那是这套设计的「传感器」</li>
+    <li>第五步试着勾一条红旗，看它<b>怎么拒绝给你建议</b></li>
+    <li>回到结果页，点<b>「为什么这么判断」</b></li>
+    <li>建立 7 天计划，再去「我的肩」点<b>「现在复测一次」</b>，看趋势因子怎么被激活</li>
+  </ol>
+
+  <footer>
+    2026-08-18 ｜ Harvey（问题与方向）+ Claude Code (Opus 5)（方案与原型）<br>
+    源码：<a href="https://github.com/diaanhw/nomon-redesign">github.com/diaanhw/nomon-redesign</a><br>
+    本项目是产品设计原型，不是医疗器械，不能替代医生或物理治疗师的诊断。
+  </footer>
+</div>
+</body>
+</html>
